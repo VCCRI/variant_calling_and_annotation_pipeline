@@ -1,0 +1,115 @@
+
+Data is from Glidden et al. 2021 paper on hotspot exons.
+Glidden DT, Buerer JL, Saueressig CF, Fairbrother WG. 
+Hotspot exons are common targets of splicing perturbations. 
+Nat Commun. 2021 May 12;12(1):2756. doi: 10.1038/s41467-021-22780-2. PMID: 33980843; PMCID: PMC8115636.
+
+Uses a gradient boosting machine (GBM) to classify data.
+
+David Glidden <david_glidden@brown.edu>
+Sat 26/06/2021 2:40 AM
+Hi Emma,
+
+Thanks for reaching out to us. The columns in that file reflect the BED format. 
+"HI_SCORE" is stating that the value in the next column is the haploinsufficiency score (treat -1 as a null value). The last column is the strand.
+
+Please let me know if you have any other questions. 
+
+----
+David Glidden, PhD
+MD Candidate, Class of 2022
+Alpert Medical School, MD/PhD Program
+Mobile: 617-833-2162
+
+##### Hotspot exons as determined by GBM
+
+Download supplementary data 2: hotspot_exon_list_hg19_Supp_data_2.xlsx
+
+head hotspot_exon_list_hg19_Supp_data_2.txt
+chr1	17605	17742	HI_SCORE	-1	-
+chr1	17605	17742	HI_SCORE	-1	-
+chr1	18267	18366	HI_SCORE	-1	-
+chr1	783033	783186	HI_SCORE	-1	+
+chr1	874654	874792	HI_SCORE	-1	+
+chr1    985612  985709  HI_SCORE        0.636561334     +
+chr1    1248166 1248329 HI_SCORE        0.533326328     -
+chr1    1500152 1500296 HI_SCORE        0.715341866     -
+chr1    1560925 1561033 HI_SCORE        0.638582647     +
+chr1    1650766 1650894 HI_SCORE        0.370475143     -
+chr1    1688619 1688749 HI_SCORE        0.446246326     -
+
+chrom	start	end	all_are_high_scoring	col1	strand_of_gene
+
+wc -l hotspot_exon_list_hg19_Supp_data_2.txt # 3597
+
+cd annovar/humandb/temp_hotspot_exons 
+
+liftOver hotspot_exon_list_hg19_Supp_data_2.txt liftover/hg19ToHg38.over.chain.gz hotspot_exon_list_hg38_liftover_from_hg19.txt hotspot_exon_list_hg38_liftover_from_hg19_rejected.txt
+
+awk 'BEGIN {FS="\t";OFS="\t"} {print "HOTSPOT", $1, $2, $3, $5}' hotspot_exon_list_hg19_Supp_data_2.txt | sort -k1,1V -k2,2V -k3,3V -k4,4V | uniq > hg19_hotspot_exons.txt
+
+awk 'BEGIN {FS="\t";OFS="\t"} {print "HOTSPOT", $1, $2, $3, $5}' hotspot_exon_list_hg38_liftover_from_hg19.txt | sort -k1,1V -k2,2V -k3,3V -k4,4V | uniq > hg38_hotspot_exons.txt
+
+echo -e "#Chr\tStart\tEnd\thotspot_exons" > hg19_hotspot_exons_sv.bed
+awk 'BEGIN {FS="\t";OFS="\t"} {print $1, $2, $3, $5}' hotspot_exon_list_hg19_Supp_data_2.txt | sort -k1,1V -k2,2V -k3,3V | uniq >> hg19_hotspot_exons_sv.bed
+
+echo -e "#Chr\tStart\tEnd\thotspot_exons" > hg38_hotspot_exons_sv.bed
+awk 'BEGIN {FS="\t";OFS="\t"} {print $1, $2, $3, $5}' hotspot_exon_list_hg38_liftover_from_hg19.txt | sort -k1,1V -k2,2V -k3,3V | uniq >> hg38_hotspot_exons_sv.bed
+
+mv hg??_hotspot_exons.txt ..
+mv hg??_hotspot_exons_sv.bed ..
+
+annovar/table_annovar_ed.pl tempin.vcf annovar/humandb/ -vcfinput -buildver hg38 \
+  -out tempout -remove \
+  -protocol refGene,hotspot_exons \
+  -operation g,r -nastring . \
+  -arg -exonicsplicing,-time
+
+##### Using the GBM model, they provide splicing predictions for all possible exonic mutations in exons with measured splice site usage
+
+less -S exonic_mutation_predictions.vcf.gz
+chr1    14970   .       G       A       .       .       EID=13966;S=-;SP=0.013979820598294;TX=uc009viw.2
+chr1    14970   .       G       A       .       .       EID=13966;S=-;SP=0.0188485067518811;TX=uc009viu.3
+chr1    14970   .       G       T       .       .       EID=13966;S=-;SP=0.013979820598294;TX=uc009viw.2
+chr1    14970   .       G       T       .       .       EID=13966;S=-;SP=0.0188485067518811;TX=uc009viu.3
+chr1    14970   .       G       C       .       .       EID=13966;S=-;SP=0.013979820598294;TX=uc009viw.2
+chr1    14970   .       G       C       .       .       EID=13966;S=-;SP=0.0188485067518811;TX=uc009viu.3
+chr1    14971   .       G       A       .       .       EID=13966;S=-;SP=0.0215765010482405;TX=uc009viw.2
+chr1    14971   .       G       A       .       .       EID=13966;S=-;SP=0.031204772286689;TX=uc009viu.3
+chr1    14971   .       G       T       .       .       EID=13966;S=-;SP=0.0215765010482405;TX=uc009viw.2
+chr1    14971   .       G       T       .       .       EID=13966;S=-;SP=0.031204772286689;TX=uc009viu.3
+chr1    14971   .       G       C       .       .       EID=13966;S=-;SP=0.0215765010482405;TX=uc009viw.2
+chr1    14971   .       G       C       .       .       EID=13966;S=-;SP=0.031204772286689;TX=uc009viu.3
+
+grep -v '^#' exonic_mutation_predictions_COPY.vcf | wc -l # 61462692
+
+This is a lot of data and it is only the prediction scores from a machine learning model.
+These predictions have not been validated and benchmarked in the same way that spliceai predictions have been.
+Thus, we will not use these predictions to annotate our variants.
+
+##### Splice site usage track
+
+http://genome.ucsc.edu/s/dschmelt/KrasSpliceHub 
+Manuscript text: average splice site usage data across 19 ENCODE cell lines for splice sites with low variance in usage.
+UCSC browser displayed text: Relative Usage of 5'and 3' Splice Sites with Variants <0.01 across Cell Lines
+Right click the track and view details to get the link
+
+http://genome.ucsc.edu/cgi-bin/hgTables?db=hg19&hgta_group=hub_729735&hgta_track=hub_729735_low_var_exon_usage_bb&hgta_table=hub_729735_low_var_exon_usage_bb&hgta_doSchema=describe+table+schema
+Database: hg19    Primary Table: hub_729735_low_var_exon_usage_bb Data last updated: 2021-06-20
+Big Bed File: https://raw.githubusercontent.com/csaueres/fairbrothertrack/master/hg19/bigBedTracks/low_var_track.bb
+Item Count: 370,350
+Format description: Standard Bed 9 Format with an Extra Entry for Splice Site Polarity
+field	example	description
+chrom	chr1	Reference sequence chromosome or scaffold
+chromStart	166445441	Start position of feature on chromosome
+chromEnd	166445442	End position of feature on chromosome
+name	1.0	Usage of Splice Site
+score	1000	Score
+strand	-	+ or - for strand
+thickStart	166445441	Ignore
+thickEnd	166445441	Ignore
+reserved	35,68,176	Green for 5 prime, Blue for 3 Prime
+polarity	3'	Type of SS
+
+#####
+

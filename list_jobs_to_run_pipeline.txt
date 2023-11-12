@@ -1,0 +1,505 @@
+
+########## Introduction to the pipeline scripts ##########
+
+This pipeline aligns fastq paired reads to a reference genome, calls variants (SNPs, indels, multinucleotide variants, splicing variants, structural variants, and copy number variants) via a joint-call process,
+annotates the variants to identify consequences and deleterious variants, carries out inheritance modelling to identify deleterious variant candidates, and carries out data quality control (QC).
+This pipeline expects the input to be whole genome sequencing (WGS) or whole exome sequencing (WES) Illumina paired-end reads.
+These scripts have been prepared to run on a high performance batch PBS submission system to a linux environment
+to keep track of which jobs have been submitted and completed so that the same process task for a sample is submitted only once for each sample.
+The scripts to run are in variant_calling_and_annotation_pipeline/code
+The output files created by the scripts are in the subdirectories of variant_calling_and_annotation_pipeline/working_directory
+The where_are_softwares_and_references.sh script contains variables pointing to software and reference data used by the pipeline.
+Please ensure that variables in where_are_softwares_and_references.sh point to the correct places where software and reference data is located in your system,
+because the other scripts use those bash variables.
+In general, the following scripts are present for each process task:
+  * align_PROCESS_TASK.sh                          <=== actual script that will be submitted to PBS to carry out a process for a sample or chromosome, receiving file names as input to this script
+  * align_PROCESS_TASK_SubmitJobs.sh               <=== the script that manages submission of align_process.sh to PBS, keeping track of what jobs have been submitted and completed.
+  * align_PROCESS_TASK_EntryPointToSubmitJobs.sh   <=== the script that continually calls 
+The scripts expect that the scripts will be located in the variant_calling_and_annotation_pipeline/code directory
+and that the output will be written to specific directories in variant_calling_and_annotation_pipeline/working_directory
+These scripts were written for a PBS system that is based on project_ids. The scripts assume that the project_id is abcd
+Please globally change abcd to your project_id.
+PBS parameters are given at the top of each script for submitting to PBS. Those parameters have been set for a WGS batch of 20 samples sequenced to 30x depth.
+Please adjust the script PBS parameters for your system and cohort size.
+The PBS parameters are: walltime mem ncpus jobfs
+These scripts have script location of /my/directory hardcoded into the scripts.
+Please do a global change of /my/directory/pipeline_for_github to your script location.
+Most sample files are created with sample_id as the prefix.
+Aggregation files (such as joint-called VCF files) for the entire processing run are created with the batch prefix as defined in where_are_softwares_and_references.sh
+Some scripts produce reports or flags in reports by cohort subsets within the batch. These are hard-coded in scripts as: cohorts=(CHD DCM)
+Lists of genes associated with these subsets are in the files: list_genes_*
+Please edit these scripts with the cohort subsets and associated gene lists for your data.
+The scripts expect a tab-delimited pedigree file called MY_BATCH.pedigree_file.ped to be present in the code directory, where MY_BATCH is the value of the batch variable in where_are_softwares_and_references.sh
+The scripts expect a tab-delimited file called MY_BATCH.one_line_per_family.txt to be present in the code directory.
+It fields are: cohort, outside_sample_id, family_id_in_pedigree_file, sample_1_id, sample_2_id ... listing all the samples in this family.
+Examples of both files are in the code directory.
+Give that this pipeline was developed for an HPC environment, the scripts contain the following commands to access some software: module load
+
+
+########## align fastq to bams ##########
+
+cd /my/directory/variant_calling_and_annotation_pipeline/code
+
+# Prior to running align_1_bwa.sh, create a tab-delimited manifest file containing one line per pair of sequencing read files (fastq.gz files).
+# Each pair of sequencing read files will be used to make a bam file.
+# The file name of the first file of the pair of sequencing read files will be used to name the output bam file.
+# The 7 fields of the manifest file are: sample_id, sequencing_read_file_1, sequencing_read_file_2, output_directory_for_bam_file, flow_cell, lane, library_prep_identifier.
+# There can be multiple manifest lines and thus multiple bams per sample.
+# Make sure that the output_directory_for_bam_file is ../working_directory/fastq_bam
+
+./align_1_bwa_SubmitJobs.sh manifests/manifest.align_1_bwa.my_cohort.txt
+
+# align_2_duplicates_SAMPLE_ONE_multiple_bam.sh will be run for each sample.
+# Prior to running align_2_duplicates_SAMPLE_ONE_multiple_bam.sh, create a separate tab-delimited manifest file for each sample,
+# containing one line for each of the bam files from running align_1_bwa.sh that are for this sample.
+# When may be one or more input bam files.
+# The output sample bam file will contain the data from the input bam files, and the output bam file name will contain the sample_id.
+# Make sure that the output_directory_for_bam_file is ../working_directory/fastq_bam_markDup_setTags
+# because the subsequent job will assume that's where to pick up this bam output to use it as input to the next job.
+
+./align_2_duplicates_SAMPLE_ONE_multiple_bam_SubmitJobs.sh manifests/manifest.align_2_duplicates_SAMPLE_ONE_multiple_bam.SAMPLE_ONE.txt
+./align_2_duplicates_SAMPLE_ONE_multiple_bam_SubmitJobs.sh manifests/manifest.align_2_duplicates_SAMPLE_ONE_multiple_bam.SAMPLE_TWO.txt
+./align_2_duplicates_SAMPLE_ONE_multiple_bam_SubmitJobs.sh manifests/manifest.align_2_duplicates_SAMPLE_ONE_multiple_bam.SAMPLE_THREE.txt
+
+# For each job from here on in the pipeline,
+# the manifest file containing input and output file information will be created automatically by the script, unless otherwise specific.
+
+./align_2b_sort_tags_validate_CreateManifestAndSubmitJobs.sh
+
+./align_3_bqsr_CreateManifestAndSubmitJobs.sh
+
+./align_4_stats_CreateManifestAndSubmitJobs.sh
+
+
+########## call SNVs ##########
+
+./callVar_1_gvcf_CreateManifestAndSubmitJobs.sh
+# which will say to run this next
+# ./callVar_1_gvcf_EntryPoint.sh ./manifests/manifest.callVar_1_gvcf_CreateManifestAndSubmitJobs.sh.txt
+
+./jointcallVar_2_GenomicsDBImport_chrom_CreateManifestAndSubmitJobs.sh
+
+./jointcallVar_3_genotype_chrom_CreateManifestAndSubmitJobs.sh
+
+./jointcallVar_4_combine_chrom_CreateManifestAndSubmitJobs.sh
+
+./callVar_5_recalibrate_1_one_vcf_CreateManifestAndSubmitJobs.sh
+./callVar_6_recalibrate_2_one_vcf_CreateManifestAndSubmitJobs.sh
+
+./vcfAdjust_1_decompose_CreateManifestAndSubmitJobs.sh
+./vcfAdjust_2_split_chrom_CreateManifestAndSubmitJobs.sh
+
+./callPlatypus_1_jointcalled_vcf_SubmitJobs.sh
+./callPlatypus_2_decompose_SubmitJobs.sh
+./callPlatypus_3_add_MNP_to_GATK_output_SubmitJobs.sh
+
+
+########## annotate SNVs ##########
+
+./vcfAnnotate_1_annotate_jointcalled_chrom_annovar_clinvar_CreateManifestAndSubmitJobs.sh
+./vcfAnnotate_2_annotate_jointcalled_chrom_vep_CreateManifestAndSubmitJobs.sh
+./vcfAnnotate_2b_annotate_jointcalled_chrom_extras_CreateManifestAndSubmitJobs.sh
+./vcfAnnotate_3_concat_jointcalled_vcf_chroms_CreateManifestAndSubmitJobs.sh
+
+	outfile: Output file is /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_MNP_annotate/AGHA_20.gatk_vqsr_and_platypus_mnp.AllChrom.annovar_clinvarDATE.vep_reformatted.extras.vcf
+
+
+########## Concatenate the annotated SNPs/indels/MNVs
+
+./vcfAnnotate_5_extract_samples_from_jointcalled_vcf_by_chrom_CreateManifestAndSubmitJobs.sh
+	# From vcf_chroms_MNP_annotate to vcf_chroms_MNP_annotate_samples
+	# After running vcfExtract_1_part_1_extract_pathogenic_and_add_flags_CreateManifestAndSubmitJobs.sh and vcfExtract_2_part_1_extract_stopGain_and_add_flags_CreateManifestAndSubmitJobs.sh
+	# and audacity_homozygosity_1_run_audacity_generate_manifest_and_run.sh
+	# then vcf_chroms_MNP_annotate_samples can probably be deleted
+	Output file is: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_chroms_MNP_annotate_samples/SAMPLE_ONE.gatk_vqsr_and_platypus_mnp.chr10.annovar_clinvarDATE.hg38_multianno.vep_reformatted.vcf
+
+# The job vcfAnnotate_5_extract_samples_from_jointcalled_vcf_CreateManifestAndSubmitJobs.sh 
+# needs to be run before spliceogen_spliceai_2_annotate_vcf_with_CreateManifestAndSubmitJobs.sh
+./vcfAnnotate_5_extract_samples_from_jointcalled_vcf_CreateManifestAndSubmitJobs.sh
+	# vcfAnnotate_5b_convert_vcf_gz_to_tab_delimited_CreateManifestAndSubmitJobs.sh uses this output.
+	# Also, spliceogen_1_launch_multiple_samples_to_pbs_CreateManifestAndSubmitJobs.sh could have used it
+	# instead of running spliceogen_0b_extract_samples_from_jointcalled_vcf_CreateManifestAndSubmitJobs.sh to get its input,
+	# but would have had to wait longer for annotation to be run before splicing pipeline could be started.
+	Output file is: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_MNP_annotate_samples/SAMPLE_ONE.gatk_vqsr_and_platypus_mnp.AllChrom.annovar_clinvarDATE.vep_reformatted.vcf.gz
+
+
+########## Look for runs-of-homozygosity with AUDACITY software, so that it can be added as an annotation
+
+# The input to this next job is the annotated SNPs/indels, after GATK and platypus and after annotations.
+# This job needs vcfAnnotate_5_extract_samples_from_jointcalled_vcf_by_chrom_CreateManifestAndSubmitJobs.sh to be run first.
+./audacity_homozygosity_1_run_audacity_CreateManifestAndSubmitJobs.sh
+        outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/audacity_homozygosity/SAMPLE_ONE_chr22/SAMPLE_ONE/SAMPLE_ONE_DIDOH3M2Regions.txt
+
+./audacity_homozygosity_2_concat_audacity_sample_CreateManifestAndSubmitJobs.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/audacity_homozygosity/SAMPLE_ONE.audacity_homozygosity_output.txt
+	outfile_png: /my/directory/variant_calling_and_annotation_pipeline/working_directory/audacity_homozygosity/SAMPLE_ONE.audacity_homozygosity_output.homozygous_runs.png
+
+./audacity_homozygosity_3_extract_large_runs_CreateManifestAndSubmitJobs.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/audacity_homozygosity/SAMPLE_ONE.audacity_homozygosity_output.large_homozygosity_runs_only.txt
+	outfile_png: /my/directory/variant_calling_and_annotation_pipeline/working_directory/audacity_homozygosity/SAMPLE_ONE.audacity_homozygosity_output.large_homozygosity_runs_only.png
+
+./audacity_homozygosity_4_calc_percentage_of_genome.sh
+
+# This job needs spliceogen_spliceai_2_annotate_vcf_with_spliceogen.sh to be run first.
+./audacity_homozygosity_5_add_homozygosity_runs_to_sample_vcf_generate_manifest_and_run.sh # done
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_MNP_annotate_samples/SAMPLE_ONE.annovar_clinvarDATE_spliceai.vep.spliceogen.homrun.vcf
+
+#./vcfAnnotate_4_convert_vcf_to_tab_delimited_generate_manifest_and_run.sh
+	# This output includes homozygous-runs info, so can't be run until we have identified homrun and annotated vcf with it.
+	# This output is for viewing, maybe can be deleted.
+
+# The following needs to be run so that homozygous_runs info will be on pathogenic/stopgain reports. They use sample_chrom level vcfs, not the sample_AllChrom vcf.
+./audacity_homozygosity_5_add_homozygosity_runs_to_sample_chromosome_vcf_CreateManifestAndSubmitJobs.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_chroms_MNP_annotate_samples/SAMPLE_ONE.gatk_vqsr_and_platypus_mnp.chrY.annovar_clinvarDATE.vep_reformatted.extras.homrun.vcf
+
+
+########## extract SNVs in genes of interest ##########
+
+# This job needs homrun to be run first, which first needs splicing to be run
+./vcfExtract_1_part_1_extract_pathogenic_and_add_flags_CreateManifestAndSubmitJobs.sh
+./vcfExtract_1_part_3_vpot_single_samples_CreateManifestAndSubmitJobs.sh
+./vcfExtract_1_part_4_merge_samples.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_chroms_MNP_annotate_samples_extracts/CHD_MY_BATCH__gatk_platypus_mnp.AllChrom.annovar_vep.possiblyPathogenic.vpot_final_output_file.vpot_gt_0.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_chroms_MNP_annotate_samples_extracts/DCM_MY_BATCH__gatk_platypus_mnp.AllChrom.annovar_vep.possiblyPathogenic.vpot_final_output_file.vpot_gt_0.txt
+./vcfExtract_1_part_5_create_igv_screenshots.sh
+
+# This job needs homrun to be run first
+./vcfExtract_2_part_1_extract_stopGain_and_add_flags_CreateManifestAndSubmitJobs.sh
+./vcfExtract_2_part_3_vpot_single_samples_CreateManifestAndSubmitJobs.sh
+./vcfExtract_2_part_4_merge_samples.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_chroms_MNP_annotate_samples_extracts/CHD_MY_BATCH__gatk_platypus_mnp.AllChrom.annovar_vep.stopLossGain.vpot_final_output_file.vpot_gt_0.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_chroms_MNP_annotate_samples_extracts/DCM_MY_BATCH__gatk_platypus_mnp.AllChrom.annovar_vep.stopLossGain.vpot_final_output_file.vpot_gt_0.txt
+./vcfExtract_2_part_5_create_igv_screenshots.sh
+
+ The vpot_inheritance report does not have sample homozygous run info in them.
+# Homrun info is at the sample level. vpot_inheritance starts its processing with the cohort level file that does not have sample level homrun info.
+# Homrun info is for detecting probable autosomal recessive variants when you have only the proband and don't have the parents.
+# vpot_inheritance uses trio (proband plus parents) to detect definite autosomal recessive variants, so don't need homrun info anyway.
+#
+qsub vpotInheritance_1b_merge_chroms_22YM.sh
+./vpotInheritance_2_filter_maf_chrom_for_vpot_SubmitJobs.sh
+./vpotInheritance_2b_adjust_MNVs_scores_SubmitJobs.sh
+qsub vpotInheritance_2c_merge_all_chroms.sh
+
+# Some of these families don't have both a mother and father and thus we cannot run all of the vpot inheritance models.
+./vpotInheritance_3_run_vpot_inheritance_SubmitJobs.sh
+	output file: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vpot_inheritance/FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.CH.CH_SAMPLE_ONE_CH_variant_filtered_output_file.txt
+
+# In the pedigree file, if a family has a child and only one parent inside of two parents, for the absent parent, set sample_id to 0, and also have a sample_id == 0 line for the family_id.
+./vpotInheritance_4_reformat_inheritance_output_and_add_flags_SubmitJobs.sh
+	outfile: 	/my/directory/variant_calling_and_annotation_pipeline/working_directory/vpot_inheritance/FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.AD.AD_father_SAMPLE_ONE_AD_variant_filtered_output_file.tab_delimited.tsv
+	outfile_flags: 	/my/directory/variant_calling_and_annotation_pipeline/working_directory/vpot_inheritance/FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.AD.AD_father_SAMPLE_ONE_AD_variant_filtered_output_file.flags.tsv
+	# The following used vpotInheritance_4_reformat_inheritance_output_and_add_flags_reduce_large_file.pbs which filtered by QUAL>=5000
+		FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.AD.AD_father_SAMPLE_ONE_AD_variant_filtered_output_file.txt
+		FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.AD.AD_mother_SAMPLE_ONE_AD_variant_filtered_output_file.txt
+		FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.AR.AR_SAMPLE_ONE_AR_variant_filtered_output_file.txt
+		FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.CH.CHSAMPLE_ONE_CH_variant_filtered_output_file.txt
+		FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.CaseControl.CaseControl_variant_filtered_output_file.txt
+		FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.DN.DN_SAMPLE_ONE_DN_variant_filtered_output_file.txt
+		FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.CaseControl.CaseControl_variant_filtered_output_file.txt
+		FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.DN.DN_SAMPLE_ONE_DN_variant_filtered_output_file.txt
+		FAMILY_FOUR.maf_0p01.AllChrom.vpot_inheritance.CH.CH_SAMPLE_ONE_CH_variant_filtered_output_file.txt
+
+
+########## Gridss structural variants (SVs) ##########
+
+# Call this script when cohort contains trios or families or related samples, as defined in the pedigree file
+./gridss_1_callSVs_gridss_CreateManifestsForFamilies.sh
+# This script will then list the next scripts to run, one for each family:
+./gridss_1_jointcallSVs_gridss_SubmitJobs.sh ./manifests/test_manifest.gridss.FAMILY_FOUR.txt
+./gridss_1_jointcallSVs_gridss_SubmitJobs.sh ./manifests/test_manifest.gridss.FAMILY_FIVE.txt
+
+# Call this script when cohort contains singletons
+./gridss_1_callSVs_gridss_CreateManifestForSingletons.sh
+# This script will then list the next script to run for singletons:
+./gridss_1_callSVs_gridss_SubmitJobs.sh ./manifests/test_manifest.gridss.single_samples.txt
+
+./gridss_2_call_svtypes_in_multisample_vcf_CreateManifestAndSubmitJobs.sh
+./gridss_2_call_svtypes_CreateManifestAndSubmitJobs.sh
+
+./gridss_2_call_svtypes_in_multisample_vcf_include_low_qual_CreateManifestAndSubmitJobs.sh
+./gridss_2_call_svtypes_include_low_qual_CreateManifestAndSubmitJobs.sh
+
+./gridss_3_annotate_multiple_bedtools_hits_CreateManifestAndSubmitJobs.sh
+./gridss_4_list_other_samples_for_comparison.sh
+./gridss_4_list_low_qual_other_samples_for_comparison.sh
+./gridss_4b_compare_strucvars_with_other_samples_CreateManifestAndSubmitJobs.sh
+./gridss_4c_compare_strucvars_with_other_samples_include_low_qual_CreateManifestAndSubmitJobs.sh
+# One of the flags to be added in the next job is the homozygous runs flags, thus need homozygous runs to be carried out before this next job can run.
+./gridss_5_extract_genes_and_add_flags_CreateManifestAndSubmitJobs.sh
+./gridss_6_call_vpot_priority_CreateManifestAndSubmitJobs.sh
+	output file: /my/directory/variant_calling_and_annotation_pipeline/working_directory/gridss_annotate/FAMILY_FOUR_SAMPLE_ONE_SAMPLE_TWO_SAMPLE_THREE.gridss.CHD_955_genes.vpot_final_output_file.vpot_gt_0.txt
+
+./gridss_7_merge_samples.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/gridss_annotate/CHD_singles__MY_BATCH__gridss.CHD_all2022jun_955_genes.vpot_final_output_file.vpot_gt_0.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/gridss_annotate/CHD_family__MY_BATCH__gridss.CHD_all2022jun_955_genes.vpot_final_output_file.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/gridss_annotate/DCM_singles__MY_BATCH__gridss.DCM_all2022jan_909_genes.vpot_final_output_file.vpot_gt_0.txt
+
+./gridss_8_extract_samples_from_jointcall_tabdelimited_CreateManifestAndSubmitJobs.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/gridss_annotate/SAMPLE_ONE.gridss.CHD_952_genes.vpot_final_output_file.txt
+
+# One of the flags to be added in the next job is the homozygous runs flags, thus need homozygous runs to be carried out before this next job can run.
+./gridss_5_extract_exon_hits_and_add_flags_CreateManifestAndSubmitJobs.sh
+./gridss_5b_merge_samples_for_exon_hits.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/gridss_annotate/CHD_singles__MY_BATCH__gridss.extract_exons_hit_and_add_flags.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/gridss_annotate/CHD_family__MY_BATCH__gridss.extract_exons_hit_and_add_flags.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/gridss_annotate/DCM_singles__MY_BATCH__gridss.extract_exons_hit_and_add_flags.txt
+
+
+########## Manta structural variants (SVs) ##########
+
+# Call this script when cohort contains trios or families or related samples, as defined in the pedigree file
+./manta_1_callSVs_manta_CreateManifestsForFamilies.sh
+# This script will then list the next scripts to run, one for each family:
+./manta_1_jointcallSVs_manta_SubmitJobs.sh ./manifests/test_manifest.manta.FAMILY_FOUR.txt
+./manta_1_jointcallSVs_manta_SubmitJobs.sh ./manifests/test_manifest.manta.FAMILY_FIVE.txt
+
+# Call this script when cohort contains singletons
+./manta_1_callSVs_manta_CreateManifestForSingletons.sh
+# This script will then list the next script to run for singletons:
+./manta_1_callSVs_manta_SubmitJobs.sh ./manifests/test_manifest.manta.single_samples.txt
+
+./manta_2_annotate_multiple_bedtools_hits_CreateManifestAndSubmitJobs.sh
+./manta_3_list_other_samples_for_comparison.sh
+./manta_3b_compare_strucvars_with_other_samples_CreateManifestAndSubmitJobs.sh
+# One of the flags to be added in the next job is the homozygous runs flags, thus need homozygous runs to be carried out before this next job can run.
+./manta_4_extract_genes_and_add_flags_CreateManifestAndSubmitJobs.sh
+./manta_5_call_vpot_priority_CreateManifestAndSubmitJobs.sh
+
+./manta_6_merge_samples.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/manta_annotate/CHD_singles__MY_BATCH__manta.CHD_955_genes.vpot_final_output_file.vpot_gt_0.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/manta_annotate/CHD_family__MY_BATCH__manta.CHD_955_genes.vpot_final_output_file.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/manta_annotate/DCM_singles__MY_BATCH__manta.DCM_909_genes.vpot_final_output_file.vpot_gt_0.txt
+
+./manta_7_extract_samples_from_jointcall_tabdelimited_CreateManifestAndSubmitJobs.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/manta_annotate/21W002545.manta.CHD_955_genes.vpot_final_output_file.txt
+
+# One of the flags to be added in the next job is the homozygous runs flags, thus need homozygous runs to be carried out before this next job can run.
+./manta_4_extract_exon_hits_and_add_flags_CreateManifestAndSubmitJobs.sh
+./manta_4b_merge_samples_for_exon_hits.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/manta_annotate/CHD_singles__MY_BATCH__manta.extract_exons_hit_and_add_flags.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/manta_annotate/CHD_family__MY_BATCH__manta.extract_exons_hit_and_add_flags.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/manta_annotate/DCM_singles__MY_BATCH__manta.extract_exons_hit_and_add_flags.txt
+
+
+########## CNVnator copy number variants (CNVs) ##########
+
+./cnvnator_1_callCNVs_CreateManifestAndSubmitJobs.sh
+./cnvnator_2_filter_CreateManifestAndSubmitJobs.sh
+./cnvnator_3_annotate_multiple_bedtools_hits_CreateManifestAndSubmitJobs.sh
+./cnvnator_4_list_other_samples_for_comparison.sh
+./cnvnator_4b_compare_strucvars_with_other_samples_CreateManifestAndSubmitJobs.sh
+# One of the flags to be added in the next job is the homozygous runs flags, thus need homozygous runs to be carried out before this next job can run.
+./cnvnator_5_extract_genes_and_add_flags_CreateManifestAndSubmitJobs.sh
+./cnvnator_6_call_vpot_priority_CreateManifestAndSubmitJobs.sh
+./cnvnator_7_merge_samples.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/cnvnator_annotate/CHD_singles__MY_BATCH__cnvnator.CHD_955_genes.vpot_final_output_file.vpot_gt_0.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/cnvnator_annotate/DCM_singles__MY_BATCH__cnvnator.DCM_909_genes.vpot_final_output_file.vpot_gt_0.txt
+
+# One of the flags to be added in the next job is the homozygous runs flags, thus need homozygous runs to be carried out before this next job can run.
+./cnvnator_5_extract_exon_hits_and_add_flags_CreateManifestAndSubmitJobs.sh
+./cnvnator_5b_merge_samples_for_exon_hits.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/cnvnator_annotate/CHD_singles__MY_BATCH__cnvnator.extract_exons_hit_and_add_flags.txt
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/cnvnator_annotate/DCM_singles__MY_BATCH__cnvnator.extract_exons_hit_and_add_flags.txt
+
+
+########## structural variants and copy number variants: Merge various results for structural variants and copy number variants ##########
+
+./merge_results_from_structural_variants_CreateManifestAndRunJobs.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/merge_results/SAMPLE_ONE.manta_gridss_cnvnator.merge.all.tsv
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/merge_results/SAMPLE_TWO.manta_gridss_cnvnator.merge.all.tsv
+
+# The merge uses files that include large SVs > 1,000,000 bp size. 
+# If a large variant is called by both cnvnator and gridss/manta, then it might be a true positive.
+# Manually look for variants called by both cnvnator and gridss/manta.
+
+cat /my/directory/variant_calling_and_annotation_pipeline/working_directory/merge_results/*.manta_gridss_cnvnator.merge.all.tsv | less -S
+
+
+########## Generate IGV images for gridss, manta, cnvnator ##########
+
+./generate_IGV_batch_file_for_merged_vpot_SVs.sh
+
+grep png /my/directory/variant_calling_and_annotation_pipeline/working_directory/igv_images_for_SVs/all_samples_SV.generate_IGV_batch_file_for_SVs.txt | wc -l
+
+
+########## ConanVarVar ##########
+
+./conanvarvar_1_run_conanvarvar_on_directory_of_bams_CreateManifests.sh
+# This script will then list the next scripts to run, one script for each batch of 10 samples:
+./conanvarvar_1_run_conanvarvar_on_directory_of_bams_SubmitJob.sh ./manifests/manifest.conanvarvar_1_run_conanvarvar_on_directory_of_bams_generate_manifest_and_run.group_1.txt
+./conanvarvar_1_run_conanvarvar_on_directory_of_bams_SubmitJob.sh ./manifests/manifest.conanvarvar_1_run_conanvarvar_on_directory_of_bams_generate_manifest_and_run.group_2.txt
+
+
+########## splicing: New pipeline ##########
+
+./spliceogen_0_copy_software_and_scripts.sh
+# The input to this next job is the SNPs/indels, after GATK and platypus. It doesn't need the annotations to be done.
+./spliceogen_0_concat_chroms_and_compress_vcf_CreateManifestAndSubmitJobs.sh
+./spliceogen_0b_extract_samples_from_jointcalled_vcf_CreateManifestAndSubmitJobs.sh
+./spliceogen_1_launch_multiple_samples_to_pbs_CreateManifestAndSubmitJobs.sh
+
+# The job vcfAnnotate_5_extract_samples_from_jointcalled_vcf_CreateManifestAndSubmitJobs.sh
+# needs to be run before spliceogen_spliceai_2_annotate_vcf_with_spliceogen_CreateManifestAndSubmitJobs.sh
+# The job spliceogen_spliceai_2_annotate_vcf_with_spliceogen_CreateManifestAndSubmitJobs.sh
+# needs to be run before audacity_homozygosity_5_add_homozygosity_runs_to_sample_vcf_CreateManifestAndSubmitJobs.sh
+./spliceogen_spliceai_2_annotate_vcf_with_spliceogen_CreateManifestAndSubmitJobs.sh
+	# produces large vcf and tsv of all variants including spliceogen and spliceai annotations.
+	outfile1: /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai/SAMPLE_ONE.annovar_clinvarDATE_spliceai.vep.spliceogen.hg38_multianno.vcf
+	outfile2: /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai/SAMPLE_ONE.annovar_clinvarDATE_spliceai.vep.spliceogen.tsv
+
+./spliceogen_spliceai_3_extract_genes_and_splice_variants_of_interest_CreateManifestAndSubmitJobs.sh
+	# input is tsv. filter for gnomad here. it adds flags too.
+	# is same code as vcfExtract_1_part_1_extract_pathogenic_and_add_flags.sh except it has different R script.
+	# replace extract_pathogenic_by_gene_name.R with extract_splice_variants_by_gene_name.R, add spliceogen and spliceai genes to gene_names list.
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai/SAMPLE_ONE.annovar_clinvarDATE_spliceai.vep.spliceogen.gnomad_filtered_splicing_variants.DCM_907_genes.tsv
+	outfile2: /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai/SAMPLE_ONE.annovar_clinvarDATE_spliceai.vep.spliceogen.gnomad_filtered_splicing_variants.DCM_907_genes.needs_spliceai_tensorflow_scores.tsv
+
+./spliceogen_spliceai_4_run_spliceai_tensorflow_on_multinucleotide_spliceogen_CreateManifestAndSubmitJobs.sh
+	output_vcf: /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai/SAMPLE_ONE.annovar_clinvarDATE_spliceai.vep.spliceogen.gnomad_filtered_splicing_variants.DCM_907_genes.needs_spliceai_tensorflow_scores.tensorflow_results.vcf
+	output_tsv: /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai/SAMPLE_ONE.annovar_clinvarDATE_spliceai.vep.spliceogen.gnomad_filtered_splicing_variants.DCM_907_genes.needs_spliceai_tensorflow_scores.tensorflow_results.tsv
+
+./spliceogen_spliceai_4b_add_spliceai_tensorflow_output_to_tsv_CreateManifestAndSubmitJobs.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai/SAMPLE_ONE.annovar_clinvarDATE_spliceai.vep.spliceogen.gnomad_filtered_splicing_variants.DCM_907_genes.merge_spliceai_tensorflow_scores.tsv
+
+./spliceogen_spliceai_6_merge_samples.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai/MY_BATCH__merge_annovar_clinvar.vep.spliceogen.gnomad_filtered_splicing_variants.CHD_955_genes.merge_spliceai_tensorflow_scores.tsv
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai/MY_BATCH__merge_annovar_clinvar.vep.spliceogen.gnomad_filtered_splicing_variants.DCM_909_genes.merge_spliceai_tensorflow_scores.tsv
+
+./spliceogen_spliceai_7_create_igv_screenshots_run_commands.sh
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/igv_images_for_splicing/all.commands_to_generate_igv_screenshots.splicing.txt
+
+# Make some subsets of the splicing reports to show the most interesting variants
+cd /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai
+awk 'BEGIN {FS="\t";OFS="\t"} {
+if (($434!="") || ($435!="") || ($436!="")) {print $0}
+}' MY_BATCH__merge_annovar_clinvar_spliceai.vep.spliceogen.gnomad_filtered_splicing_variants.CHD_955_genes.tsv > MY_BATCH__merge_annovar_clinvar_spliceai.vep.spliceogen.gnomad_filtered_splicing_variants.CHD_955_genes.only_AGHA_genes.tsv 
+#
+cd /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai
+awk 'BEGIN {FS="\t";OFS="\t"} {
+if (NR==1) {print $0}; if ($10!="") {if ($10<0.04) {print $0}}
+}' MY_BATCH__merge_annovar_clinvar_spliceai.vep.spliceogen.gnomad_filtered_splicing_variants.CHD_955_genes.tsv > MY_BATCH__merge_annovar_clinvar_spliceai.vep.spliceogen.gnomad_filtered_splicing_variants.CHD_955_genes.low_AF.tsv
+#
+cd /my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai
+awk 'BEGIN {FS="\t";OFS="\t"} {
+if (NR==1) {print $0}; if ($10!="") {if ($10<0.04) {print $0}}
+}' MY_BATCH__merge_annovar_clinvar_spliceai.vep.spliceogen.gnomad_filtered_splicing_variants.DCM_909_genes.tsv > MY_BATCH__merge_annovar_clinvar_spliceai.vep.spliceogen.gnomad_filtered_splicing_variants.DCM_909_genes.low_AF.tsv 
+
+
+########## vcf QC
+
+cd /my/directory/variant_calling_and_annotation_pipeline/code
+
+qsub vcfQC_0_prepare_vcf_input_GATK_only.sh
+        indir=/my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_vqsr_normalize
+
+qsub vcfQC_1_copy_vcf.sh
+
+qsub vcfQC_2_plink_for_multisample_vcf.sh
+
+./vcfQC_3_get_coverage.sh
+
+# Create tab-delimited data file for R script
+
+module load R/3.6.1
+cp MY_BATCH.pedigree_file.ped /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/MY_BATCH_ped_file.ped
+Rscript vcfQC_4_plots.r
+	# If get this error:
+	Error in scan(file = file, what = what, sep = sep, quote = quote, dec = dec,  : 
+	  line 1 did not have 13 elements
+	# then edit this file to remove extra error message lines
+	nano /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/MY_BATCH.plink/MY_BATCH_vcf_istats.txt
+
+infile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/MY_BATCH_ped_file.ped
+outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/MY_BATCH.plink/king.kin # Shows relatedness of samples that pedigree says should be related
+outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/MY_BATCH.plink/king.kin0 # Show relatedness of samples that pedigree says should not be related
+outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/MY_BATCH.plink/MY_BATCH._chrall_chksex.sexcheck
+outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/MY_BATCH.vcfQC_3_get_coverage.output.txt
+outfiles: /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/*.png
+
+# Look in *.png for vcf qc plots
+# Look in *_plink/*._chrall_chksex.sexcheck to verify the sexcheck.
+# Look in king.kin and king.kin0 for kinship analysis.
+Relationship						Kinship_coefficient	coefficient_of_relatedness 
+Individual-self						1/2 = 0.5		1
+full sister / full brother				1/4 = 0.25		0.5
+mother / father / daughter / son			1/4 = 0.25		0.5
+grandmother / grandfather / granddaughter / grandson	1/8 = 0.125		0.25
+aunt / uncle / niece / nephew				1/8 = 0.125		0.25
+first cousin						1/16 = 0.0625		0.125
+half-sister / half-brother				1/8 = 0.125		0.25
+Several of the most common family relationships and their corresponding kinship coefficient.
+The coefficient of relatedness is equal to twice the kinship coefficient (in king output).
+	1/2 = 0.5					1/4 = 0.25
+	1/4 = 0.25					1/8 = 0.125
+	1/8 = 0.125					1/16 = 0.0625
+	1/16 = 0.0625					1/32 = 0.03125
+If kinship coefficient = 0.0140, then coefficient of relatedness = 0.028, which is less than 1/16 first cousin
+
+# This file shows samples for which the pedigree file says are related, to verify whether the genetics show them as being related.
+cat /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/MY_BATCH.plink/king.kin
+
+# This file shows samples for which the pedigree file says they are not related, to verify whether the genetics show them as being not related.
+cat /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/MY_BATCH.plink/king.kin0
+# This awk result shows the highest value which would be a sample that is related, to see if there are any samples that seem to be related even though these are sample that are supposed to be not related.
+# Anything higher than first cousins should be related. It is possible to for non-related samples to have a score that makes them look like they might be first cousins.
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR==2) {max=$8} else {if ($8>max) {max=$8}}} END {print max}' /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/MY_BATCH.plink/king.kin0
+
+# This file verifies that genomically calculated genders are the same as the pedigree reported genders.
+cat /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_qc/MY_BATCH.plink/MY_BATCH._chrall_chksex.sexcheck
+
+
+########## bam QC
+
+./bamQC_1_verifybamid_CreateManifestAndSubmitJobs.sh
+./bamQC_2_picard_stats_CreateManifestAndSubmitJobs.sh
+
+cd /my/directory/variant_calling_and_annotation_pipeline/working_directory/bam_qc
+
+# A sample has contamination when VerifyBamID freemix alpha > 0.05.
+grep -H Alpha *.markDup.setTags.bqsr.verifybamid2_output.txt | cut -d':' -f1,3 | sed -e 's/.markDup.setTags.bqsr.verifybamid2_output.txt:/\t/g' > MY_BATCH.verifybamid2_output_all.txt
+
+# For sequencing fragments of 750 bp long including 150 bp reads on each end and thus a 450 bp non-sequenced insert size, a reasonable average insert size is between ~350 and ~450.
+grep -A 1 MEDIAN_INSERT_SIZE *.picard_insert_size_metrics.txt | grep -v MEDIAN_INSERT_SIZE | grep -v '\-\-' | sed -e 's/\./\t/' | sed -e 's/\-/\t/' | cut -d$'\t' -f1,3 > AGHA_20.picard_insert_size.txt
+
+# A problematic high rate of chimeric reads is when picard jumping metrics are > 0.05.
+grep -A 1 PCT_CHIMERAS *.picard_jumping_metrics.txt | cut -d$'\t' -f1,17 | sed -e 's/\./\t/' | cut -d$'\t' -f1,3 | grep -v PCT_CHIMERAS | grep -v '\-\-' > AGHA_20.picard_jumping_metrics_all.txt
+
+
+########## Analyse mitochrondrial variants
+
+# This job needs homrun to be run first, which needs splicing to be run first
+./mitochondria_1_helixmtdb_CreateManifestAndSubmitJobs.sh
+./mitochondria_1b_helixmtdb_CreateManifestAndSubmitJobs.sh
+./mitochondria_1c_mitotip_CreateManifestAndSubmitJobs.sh
+./mitochondria_1d_mitomap_CreateManifestAndSubmitJobs.sh
+./mitochondria_1e_convert_to_tsv_CreateManifestAndSubmitJobs.sh
+./mitochondria_2_extract_pathogenic_CreateManifestAndSubmitJobs.sh
+./mitochondria_3_merge_samples.sh # done
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/mitochondria/CHD_MY_BATCH__mitochondria.possibly_pathogenic.tsv
+	outfile: /my/directory/variant_calling_and_annotation_pipeline/working_directory/mitochondria/DCM_MY_BATCH__mitochondria.possibly_pathogenic.tsv
+
+# Here is how mitochondrial variants have been extracted to the possibly_pathogenic output:
+# Use HelixMTdb for MAF values. Extract mitochondrial variants as rare when their allele frequency is ≤ 1%.
+# From those, chose possibly_pathogenic variants as those that have at least one of the following:
+# 1. MitImpact's APOGEE prediction for the variant is “P” for pathogenic; or
+# 2. MitoTIP's prediction score for the variant excedes the recommended pathogenicity threshold of 12.66; or
+# 3. The variant is marked as 'confirmed pathogenic' in MITOMAP.
+# Usually all mito variants can be quickly discarded as not pathogenic because their helixMT database counts for homozygous (or heterozygous in the cases where the sample's variant is het) are too high, are greater than 1.
+
+
+########## How to create a new gene list for use in the above pipeline ##########
+
+./verify_all_genes_are_in_reference.sh my_new_list_of_genes_withoutBars.txt
+# For genes not found in the reference, find its synonym that is in the reference.
+# If the gene is not in the reference under any name, then it will need to be manually added to list_genes_*_RefSeq_regions_colon_dash_format.txt, list_genes_*_RefSeq_regions_tab_delimited.txt, list_genes_*_withBars.txt list_genes_*_withoutBars.txt
+
+./extract_gene_regions_from_reference.sh my_new_list_of_genes_withoutBars.txt
+# This script takes list_genes_*_withoutBars.txt on input and produces the following output: list_genes_*_RefSeq_regions_colon_dash_format.txt, list_genes_*_RefSeq_regions_tab_delimited.txt, list_genes_*_withBars.txt
+
+# add MTTI, MT-TI
+# add chrM:4263-4331
+nano my_new_list_of_genes*
+
+
+##########

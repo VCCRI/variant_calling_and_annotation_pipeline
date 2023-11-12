@@ -1,0 +1,17 @@
+Family	Subject	Father	Mother	Sex	Phenotype
+sample1	sample1	0	0	1	2
+sample2	sample2	0	0	2	2
+sample3	sample3	0	0	2	2
+pedigree4	sample41	sample42	sample43	2	2
+pedigree4	sample43	0	0	2	1
+pedigree4	sample42	0	0	1	1
+pedigree5	sample51	sample52	sample53	1	2
+pedigree5	sample53	0	0	2	1
+pedigree5	sample52	0	0	1	2
+pedigree6	sample61	0	sample62	1	2
+pedigree6	sample62	0	0	2	1
+pedigree7	sample71	sample72	sample73	1	2
+pedigree7	sample73	0	0	2	1
+pedigree7	sample72	0	0	1	1
+pedigree7	sample74	0	0	2	2
+pedigree7	sample75	0	0	1	2

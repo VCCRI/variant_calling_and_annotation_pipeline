@@ -1,0 +1,159 @@
+
+HelixMTdb_20200327.tsv was downloaded from https://www.helix.com/pages/mitochondrial-variant-database on 2020-11-06.
+
+The HelixMTdb database reflects aggregated and de-identified mitochondrial DNA variants observed in individuals sequenced at Helix. 
+These individuals have not been sequenced based on the presence or absence of any medical phenotype (i.e. there are no inclusion or exclusion criteria in the registration process based on any medical phenotype).
+
+The accompanying video on the website said that the variants are from 195,000 individuals.
+
+The publication is:
+https://www.biorxiv.org/content/10.1101/798264v3
+A catalog of homoplasmic and heteroplasmic mitochondrial DNA variants in humans
+Alexandre Bolze, Fernando Mendez, Simon White, Francisco Tanudjaja, Magnus Isaksson, Ruomu Jiang, Andrew Dei Rossi, Elizabeth T. Cirulli, Misha Rashkin, William J. Metcalf, Joseph J. Grzymski, William Lee, James T. Lu, Nicole L. Washington
+doi: https://doi.org/10.1101/798264
+Posted June 26, 2020.
+
+High quality population allele frequencies of DNA variants can be used to discover new biology, and study rare disorders. 
+Here, we created a public catalog of mitochondrial DNA variants based on a population of 195,983 individuals. 
+We focused on 3 criteria: 
+(i) the population is not enriched for mitochondrial disorders, or other clinical phenotypes, 
+(ii) all genomes are sequenced and analyzed in the same clinical laboratory, and 
+(iii) both homoplasmic and heteroplasmic variants are reported. 
+We found that 47% of the mitochondrial genome was invariant in this population, including large stretches in the 2 rRNA genes. 
+This information could be used to annotate the mitochondrial genome in future studies. 
+We also showed how to use this resource for the interpretation of pathogenic variants for rare mitochondrial disorders. 
+For example, 42% of variants previously reported to be pathogenic for Leber Hereditary Optic Neuropathy (LHON) should be reclassified.
+
+The paper refers to GRCh38 annotations and thus the data appears to be in GRCh38 coordinates.
+
+Some column descriptions:
+For heteroplasmic variants, we defined the Alternate Read Fraction (ARF) to quantify the level of heteroplasmy observed.
+Lastly, for all individuals, we calculated (i) ancestry using ADMIXTURE, (ii) mitochondria haplogroups using Haplogrep, and (iii) relatedness using Hail’s pc_relate function.
+
+Some information about included samples:
+There were no inclusion or exclusion criteria based on a mitochondrial disorder. The only inclusion criteria were: 
+(i) being 18 years old or more, 
+(ii) living in the United States at the time of consent, and 
+(iii) having a unique email address. 
+For all individuals, we sequenced their Exome+Ⓡ, which includes the sequence of the full mitochondrial genome, 
+followed by analysis of the mitochondrial genome using a mitochondria-specific pipeline (Methods). 
+We then performed several quality control steps including the standard clinical laboratory analysis for the nuclear genomes: 
+(i) quality of the overall sequencing output, 
+(ii) assessment of contamination levels and re-collection of contaminated samples, and 
+(iii) sex matching. 
+We also filtered samples that had five or more heteroplasmic variants outside of the hypervariable region as having more was considered very unlikely to be the result of true heteroplasmy, 
+and more likely to be due to very low levels of contamination (originating from food in most of these cases)
+Lastly, for all individuals, we calculated 
+(i) ancestry using ADMIXTURE, 
+(ii) mitochondria haplogroups using Haplogrep, and 
+(iii) relatedness using Hail’s pc_relate function. 
+We removed second-degree or closer related individuals. 
+After applying these steps, we had 195,983 individuals and mitochondrial genomes to analyze and aggregate. 
+While almost all lineages present in the most recent version of PhyloTree (van Oven and Kayser, 2009) were represented in our dataset, 
+91.2% of the haplogroups were part of the Eurasian N lineages. 
+The median age group was 46-50 years old and were 52.3% female.
+
+##########
+
+HelixMTdb
+https://www.helix.com/pages/mitochondrial-variant-database
+HelixMTdb_20200327.tsv
+
+# input HelixMTdb_20200327.tsv:
+locus	alleles		feature		gene counts_hom	AF_hom	counts_het	AF_het	mean_ARF	max_ARF	haplogroups_for_homoplasmic_variants	haplogroups_for_heteroplasmic_variants
+chrM:5	["A","C"]	non_coding	MT-CRb	1	5.10E-06	0	0	NaN	NA	[["H",1]]	[]
+chrM:10	["T","C"]	non_coding	MT-CRb	7	3.57E-05	1	5.10E-06	9.19E-01	9.19E-01	[["H",7]]	[["H",1]]
+chrM:11	["C","T"]	non_coding	MT-CRb	0	0	1	5.10E-06	6.07E-01	6.07E-01	[]	[["H",1]]
+chrM:12	["T","C"]	non_coding	MT-CRb	1	5.10E-06	0	0	NaN	NA	[["D",1]]	[]
+chrM:16	["A","T"]	non_coding	MT-CRb	273	0.001392978	4	2.04E-05	6.90E-01	9.22E-01	[["K",246],["U",12],["H",7],["V",2],["B",1],["C",1],["L5",1],["M",1],["T",1],["Y",1]]	[["K",2],["L3",1],["U",1]]
+chrM:18	["C","T"]	non_coding	MT-CRb	3	1.53E-05	1	5.10E-06	8.52E-01	8.52E-01	[["C",3]]	[["C",1]]
+chrM:19	["C","T"]	non_coding	MT-CRb	1	5.10E-06	0	0	NaN	NA	[["A",1]]	[]
+
+# input HelixMTdb_20200327.tsv:
+chrM:60 ["T","A"]       non_coding      MT-CRb  11      5.6127315E-5    0       0.0     NaN     NA      [["B",5],["H",4],["D",2]]       []
+chrM:60 ["T","A","C"]   non_coding      MT-CRb  0       0.0     1       5.1024836E-6    2.8571e-01      2.8571e-01      []      [["B",1]]
+chrM:60 ["T","C"]       non_coding      MT-CRb  71      3.6227633E-4    0       0.0     NaN     NA      [["B",29],["C",20],["D",5],["H",5],["V",5],["T",2],["A",1],["L2",1],[>
+chrM:60 ["TC","T"]      non_coding      MT-CRb  1       5.1024836E-6    1       5.1024836E-6    9.3623e-01      9.3623e-01      [["U",1]]       [["U",1]]
+chrM:60 ["TCG","T"]     non_coding      MT-CRb  14      7.143477E-5     0       0.0     NaN     NA      [["B",13],["H",1]]      []
+chrM:60 ["TCGTC","T"]   non_coding      MT-CRb  5       2.5512418E-5    1       5.1024836E-6    9.5238e-01      9.5238e-01      [["A",5]]       [["A",1]]
+
+# intermediate file temp_HelixMTdb_20200327.tsv:
+chrM:60 ["T","A"]       non_coding      MT-CRb  0       0.0     1       5.1024836E-6    2.8571e-01      2.8571e-01      []      [["B",1]]
+chrM:60 ["T","A"]       non_coding      MT-CRb  11      5.6127315E-5    0       0.0     NaN     NA      [["B",5],["H",4],["D",2]]       []
+chrM:60 ["TCGTC","T"]   non_coding      MT-CRb  5       2.5512418E-5    1       5.1024836E-6    9.5238e-01      9.5238e-01      [["A",5]]       [["A",1]]
+chrM:60 ["TCG","T"]     non_coding      MT-CRb  14      7.143477E-5     0       0.0     NaN     NA      [["B",13],["H",1]]      []
+chrM:60 ["T","C"]       non_coding      MT-CRb  0       0.0     1       5.1024836E-6    2.8571e-01      2.8571e-01      []      [["B",1]]
+chrM:60 ["T","C"]       non_coding      MT-CRb  71      3.6227633E-4    0       0.0     NaN     NA      [["B",29],["C",20],["D",5],["H",5],["V",5],["T",2],["A",1],["L2",1],[>
+chrM:60 ["TC","T"]      non_coding      MT-CRb  1       5.1024836E-6    1       5.1024836E-6    9.3623e-01      9.3623e-01      [["U",1]]       [["U",1]]
+
+# intermediate file temp2_HelixMTdb_20200327.tsv:
+chrM:60	["T","A"]	non_coding	MT-CRb	0|11	0.0|5.6127315E-5	1|0	5.1024836E-6|0.0	2.8571e-01|NaN	2.8571e-01|NA	[]|[["B",5],["H",4],["D",2]]	[["B",1]]|[]
+chrM:60	["TCGTC","T"]	non_coding	MT-CRb	5	2.5512418E-5	1	5.1024836E-6	9.5238e-01	9.5238e-01	[["A",5]]	[["A",1]]
+chrM:60	["TCG","T"]	non_coding	MT-CRb	14	7.143477E-5	0	0.0	NaN	NA	[["B",13],["H",1]]	[]
+chrM:60	["T","C"]	non_coding	MT-CRb	0|71	0.0|3.6227633E-4	1|0	5.1024836E-6|0.0	2.8571e-01|NaN	2.8571e-01|NA	[]|[["B",29],["C",20],["D",5],["H",5],["V",5],["T",2],["A",1],["L2",1],["M",1],["U",1],["W",1]]	[["B",1]]|[]
+chrM:60	["TC","T"]	non_coding	MT-CRb	1	5.1024836E-6	1	5.1024836E-6	9.3623e-01	9.3623e-01	[["U",1]]	[["U",1]]
+
+
+awk 'BEGIN {FS="\t";OFS="\t"} {field2=$2; count_commas=gsub(/\,/,"",field2); if (count_commas>1) {gsub(/\[/,"",$2); gsub(/\]/,"",$2); split($2,a,","); printf $1 OFS "["a[1]","a[2]"]"; for(i=3;i<=NF;++i) printf OFS $i; printf "\n"; printf $1 OFS "["a[1]","a[3]"]"; for(i=3;i<=NF;++i) printf OFS $i; printf "\n"} else {print $0}}' HelixMTdb_20200327.tsv | sort | uniq > temp_HelixMTdb_20200327.tsv
+
+awk 'BEGIN {FS="\t";OFS="\t"; for(i=1;i<=12;++i) prev[i]=""} {if (($1==prev[1])&&($2==prev[2])) {for(i=5;i<=NF;++i) prev[i]=prev[i]"|"$i} else {if (prev[1]!="") {printf prev[1]; for(i=2;i<=NF;++i) printf OFS prev[i]; printf "\n"}; for(i=1;i<=NF;++i) prev[i]=$i}} END {if (prev[1]!="") {printf prev[1]; for(i=2;i<=NF;++i) printf OFS prev[i]; printf "\n"}}' temp_HelixMTdb_20200327.tsv > temp2_HelixMTdb_20200327.tsv
+
+awk 'BEGIN {FS=":";OFS="\t"} {if ($1!="locus") {print $1, $2}}' temp2_HelixMTdb_20200327.tsv | sort -k1,1 -k2,2V -k3,3 | uniq | sed -e 's/\t/:/' > temp3_HelixMTdb_20200327.tsv
+
+:>temp.vcf
+echo '##fileformat=VCFv4.2' >> temp.vcf
+echo '##fileDate=2020-01-01' >> temp.vcf
+echo '##reference=GRCh38' >> temp.vcf
+echo '##contig=<ID=chrM,length=16569>' >> temp.vcf
+echo '##INFO=<ID=HelixMTdb_feature,Number=1,Type=String,Description="HelixMTdb feature">' >> temp.vcf
+echo '##INFO=<ID=HelixMTdb_gene,Number=1,Type=String,Description="HelixMTdb gene">' >> temp.vcf
+echo '##INFO=<ID=HelixMTdb_counts_hom,Number=1,Type=String,Description="HelixMTdb counts_hom">' >> temp.vcf
+echo '##INFO=<ID=HelixMTdb_AF_hom,Number=1,Type=String,Description="HelixMTdb AF_hom">' >> temp.vcf
+echo '##INFO=<ID=HelixMTdb_counts_het,Number=1,Type=String,Description="HelixMTdb counts_het">' >> temp.vcf
+echo '##INFO=<ID=HelixMTdb_AF_het,Number=1,Type=String,Description="HelixMTdb AF_het">' >> temp.vcf
+echo '##INFO=<ID=HelixMTdb_mean_ARF,Number=1,Type=String,Description="HelixMTdb mean_ARF">' >> temp.vcf
+echo '##INFO=<ID=HelixMTdb_max_ARF,Number=1,Type=String,Description="HelixMTdb max_ARF">' >> temp.vcf
+echo '##INFO=<ID=HelixMTdb_haplogroups_for_homoplasmic_variants,Number=1,Type=String,Description="HelixMTdb haplogroups_for_homoplasmic_variants">' >> temp.vcf
+echo '##INFO=<ID=HelixMTdb_haplogroups_for_heteroplasmic_variants,Number=1,Type=String,Description="HelixMTdb haplogroups_for_heteroplasmic_variants">' >> temp.vcf
+echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> temp.vcf
+grep -v '^locus' temp3_HelixMTdb_20200327.tsv | awk 'BEGIN {FS=":";OFS="\t"} {if ($1!="locus") {print $1, $2}}' | awk 'BEGIN {FS="\t";OFS="\t"} {print $1, $2, ".", $3, ".", ".", "HelixMTdb_feature="$4 ";HelixMTdb_gene="$5 ";HelixMTdb_counts_hom="$6 ";HelixMTdb_AF_hom="$7 ";HelixMTdb_counts_het="$8 ";HelixMTdb_AF_het="$9 ";HelixMTdb_mean_ARF="$10 ";HelixMTdb_max_ARF="$11 ";HelixMTdb_haplogroups_for_homoplasmic_variants="$12 ";HelixMTdb_haplogroups_for_heteroplasmic_variants="$13 }' | sed -e 's/\"\,\"/\t/' | sed 's/\[\"//' | sed 's/\"\]//' | sed 's/\]\,\[\"/\|/g' | sed 's/\[\[\"//g' | sed 's/\]\]//g' | sed 's/\[\]/\./g' | sed 's/\"\,/\_/g' | sed 's/X \+ /X\+/g' >> temp.vcf
+
+sed 's/[|]/\_\_/g' temp.vcf > temp2.vcf
+
+
+
+# output
+chrM	5	.	A	C	.	.	HelixMTdb_feature=non_coding;HelixMTdb_gene=MT-CRb;HelixMTdb_counts_hom=1;HelixMTdb_AF_hom=5.1024836E-6;HelixMTdb_counts_het=0;HelixMTdb_AF_het=0.0;HelixMTdb_mean_ARF=NaN;HelixMTdb_max_ARF=NA;HelixMTdb_haplogroups_for_homoplasmic_variants=H_1;HelixMTdb_haplogroups_for_heteroplasmic_variants=.
+chrM	10	.	T	C	.	.	HelixMTdb_feature=non_coding;HelixMTdb_gene=MT-CRb;HelixMTdb_counts_hom=7;HelixMTdb_AF_hom=3.5717385E-5;HelixMTdb_counts_het=1;HelixMTdb_AF_het=5.1024836E-6;HelixMTdb_mean_ARF=9.1892e-01;HelixMTdb_max_ARF=9.1892e-01;HelixMTdb_haplogroups_for_homoplasmic_variants=H_7;HelixMTdb_haplogroups_for_heteroplasmic_variants=H_1
+chrM	11	.	C	T	.	.	HelixMTdb_feature=non_coding;HelixMTdb_gene=MT-CRb;HelixMTdb_counts_hom=0;HelixMTdb_AF_hom=0.0;HelixMTdb_counts_het=1;HelixMTdb_AF_het=5.1024836E-6;HelixMTdb_mean_ARF=6.0714e-01;HelixMTdb_max_ARF=6.0714e-01;HelixMTdb_haplogroups_for_homoplasmic_variants=.;HelixMTdb_haplogroups_for_heteroplasmic_variants=H_1
+chrM	12	.	T	C	.	.	HelixMTdb_feature=non_coding;HelixMTdb_gene=MT-CRb;HelixMTdb_counts_hom=1;HelixMTdb_AF_hom=5.1024836E-6;HelixMTdb_counts_het=0;HelixMTdb_AF_het=0.0;HelixMTdb_mean_ARF=NaN;HelixMTdb_max_ARF=NA;HelixMTdb_haplogroups_for_homoplasmic_variants=D_1;HelixMTdb_haplogroups_for_heteroplasmic_variants=.
+chrM	16	.	A	T	.	.	HelixMTdb_feature=non_coding;HelixMTdb_gene=MT-CRb;HelixMTdb_counts_hom=273;HelixMTdb_AF_hom=0.001392978;HelixMTdb_counts_het=4;HelixMTdb_AF_het=2.0409934E-5;HelixMTdb_mean_ARF=6.8971e-01;HelixMTdb_max_ARF=9.2188e-01;HelixMTdb_haplogroups_for_homoplasmic_variants=K_246|U_12|H_7|V_2|B_1|C_1|L5_1|M_1|T_1|Y_1;HelixMTdb_haplogroups_for_heteroplasmic_variants=K_2|L3_1|U_1
+chrM	18	.	C	T	.	.	HelixMTdb_feature=non_coding;HelixMTdb_gene=MT-CRb;HelixMTdb_counts_hom=3;HelixMTdb_AF_hom=1.530745E-5;HelixMTdb_counts_het=1;HelixMTdb_AF_het=5.1024836E-6;HelixMTdb_mean_ARF=8.5185e-01;HelixMTdb_max_ARF=8.5185e-01;HelixMTdb_haplogroups_for_homoplasmic_variants=C_3;HelixMTdb_haplogroups_for_heteroplasmic_variants=C_1
+chrM	19	.	C	T	.	.	HelixMTdb_feature=non_coding;HelixMTdb_gene=MT-CRb;HelixMTdb_counts_hom=1;HelixMTdb_AF_hom=5.1024836E-6;HelixMTdb_counts_het=0;HelixMTdb_AF_het=0.0;HelixMTdb_mean_ARF=NaN;HelixMTdb_max_ARF=NA;HelixMTdb_haplogroups_for_homoplasmic_variants=A_1;HelixMTdb_haplogroups_for_heteroplasmic_variants=.
+
+perl ../convert2annovar.pl -format vcf4 temp.vcf > hg38_HelixMTdb_20200327_convert2annovar.avinput
+python3 annovar/annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i temp.vcf -a hg38_HelixMTdb_20200327_convert2annovar.avinput -o hg38_HelixMTdb_20200327.txt
+perl ../index_annovar.pl hg38_HelixMTdb_20200327.txt -outfile hg38_HelixMTdb_20200327.txt.idx
+# If the *.txt has been copied by annovar to *.txt.idx and there is a *.txt.idx.idx, then do:
+mv hg38_HelixMTdb_20200327.txt.idx.idx hg38_HelixMTdb_20200327.txt.idx
+
+rm temp*_HelixMTdb_20200327.tsv
+rm temp.vcf temp2.vcf
+rm hg38_HelixMTdb_20200327_convert2annovar.avinput
+
+# Annotate a sample using the new clinvar reference table. This is done for every sample.
+
+cd /my/sample/directory
+perl table_annovar.pl my_sample.vcf humandb/ -vcfinput -buildver hg38 \
+  -out my_sample_annotated -remove \
+  -protocol HelixMTdb_20200327 \
+  -operation f -nastring . \
+  -arg -time
+
+perl table_annovar_ed.pl my_sample.vcf humandb/ -vcfinput -buildver hg38 \
+  -out my_sample_annotated2 -remove \
+  -protocol refGene,HelixMTdb_20200327 \
+  -operation g,f -nastring . \
+  -arg -exonicsplicing,-time
+
+ 

@@ -1,0 +1,62 @@
+#!/bin/bash
+set -euo pipefail
+
+indir1=/my/directory/variant_calling_and_annotation_pipeline/working_directory/platypus
+indir2=/my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_vqsr_normalize_chroms
+outdir=/my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_chroms_MNP
+
+curr_pgm=$0
+curr_pgm_base=$(basename $curr_pgm)
+curr_pgm_base="${curr_pgm_base%.sh}"
+
+# set environment variables for softwares and references
+currdir=$(pwd)
+sw_and_refs="${currdir}"/where_are_softwares_and_references.sh
+. "${sw_and_refs}"
+
+mito="M"
+if [[ $genome_version == "hg19" ]]; then
+  mito="MT"
+fi
+
+for chrom in {1..22} "X" "Y" "$mito" ; do
+
+    chr_chrom="chr"$chrom
+    if [[ $genome_version == "hg19" ]]; then
+      chr_chrom=$chrom
+    fi
+
+    jobid=mnp"${chr_chrom}"
+
+    infile1="${indir1}"/"${batch}".platypus.vt_decompose."${chr_chrom}".vcf
+    infile2="${indir2}"/"${batch}"__allChrom.vqsr.decompose_blocksub_normalize.chrom"${chrom}".vcf.gz
+    outfile="${outdir}"/"${batch}".gatk_vqsr_and_platypus_mnp."${chr_chrom}".vcf
+
+    queue_file="${outfile}.queued"
+    lock_file="${outfile}.lock"
+    done_file="${outfile}.done"
+    term_file="${outfile}.term"
+    log_file="${outfile}.log"
+
+    #if [ -e "${prev_done_file}" ]; then
+      if [ -e "${queue_file}" ]; then
+        echo "${jobid} already queued" $queue_file
+      elif [ -e "${lock_file}" ]; then
+        echo "${jobid} already running" $lock_file
+      elif [ -e "${done_file}" ]; then
+        echo "${jobid} already done" $done_file
+      elif [ -e "${term_file}" ]; then
+        echo "${jobid} was terminated" $term_file
+      else
+
+        echo 'qsub -N' ${jobid} '-v infile1='"${infile1}"',infile2='"${infile2}"',outdir='"${outdir}"',outfile='"${outfile}"',chrom='"${chr_chrom}"',sw_and_refs='"${sw_and_refs}" 'callPlatypus_3_add_MNP_to_GATK_output.sh'
+        qsub -N ${jobid} -v infile1="${infile1}",infile2="${infile2}",outdir="${outdir}",outfile="${outfile}",chrom="${chr_chrom}",sw_and_refs="${sw_and_refs}" callPlatypus_3_add_MNP_to_GATK_output.sh && \
+        touch "${queue_file}" && \
+        echo "${jobid} queued" $chr_chrom
+        #sleep 1
+
+      fi
+    #fi
+
+done
+

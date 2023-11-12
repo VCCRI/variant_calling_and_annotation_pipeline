@@ -1,0 +1,59 @@
+PF	Population_filter	Value
+PF	INFO_gnomad211_VC_exome_AF	0.01	LE
+PF	INFO_gnomad31_VC_genome_AF	0.01	LE
+PF	INFO_gnomad211_VC_exome_AF_popmax	0.01	LE
+PF	INFO_gnomad31_VC_genome_AF_popmax	0.01	LE
+PF	INFO_gnomad31_VC_genome_nhomalt	5	LE
+PF	INFO_gnomadMNV_AF_mnv	0.01	LE
+PF	INFO_gnomadMNVdist_AF_mnv	0.01	LE
+PF	INFO_ExAC_ALL	0.01	LE
+PF	INFO_ExAC_HOMO	5	LE
+PF	INFO_1000g2015aug_all	0.01	LE
+PF	INFO_VC_freq	0.1	LE
+PF	INFO_VC_hom_cnt	5	LE
+PF	INFO_VC_het_cnt	10	LE
+PD	Predictors	Type	Low	Value	Mid	Value	High	Value
+PD	INFO_CADD_PHRED	N	-998	1	10	0	20.000001	2	20	4
+PD	INFO_MutPredIndel_score	N	0.546	0	0.672	1	0.850001	2	0.85	4
+PD	INFO_DBNSFP41A_GERP++_RS	N	-998	1	4	0	6.000001	1	6	2
+PD	INFO_DBNSFP41A_GERP.._RS	N	-998	1	4	0	6.000001	1	6	2
+PD	INFO_DBNSFP41A_LRT_pred	A	N	0	U	0	D	2	-999	1
+PD	INFO_MCAP	N	0	0	0.025	0	0.025	4
+PD	INFO_DBNSFP41A_MetaSVM_pred	A	T	0	D	2	-999	1
+PD	INFO_DBNSFP41A_MutationAssessor_pred	A	N	0	L	0	M	1	H	2	-999	1
+PD	INFO_DBNSFP41A_MutationTaster_pred	A	N	0	L	0	A	2	D	2
+PD	INFO_DBNSFP41A_phyloP20way_mammalian	N	-998	1	0.9	0	1	1	1	2
+PD	INFO_DBNSFP41A_Polyphen2_HDIV_pred	A	B	0	P	2	D	4	-999	1
+PD	INFO_DBNSFP41A_Polyphen2_HVAR_pred	A	B	0	P	2	D	4	-999	1
+PD	INFO_DBNSFP41A_PROVEAN_pred	A	N	0	D	2	-999	1
+PD	INFO_DBNSFP41A_SIFT_pred	A	T	0	D	2	-999	1
+VT	Variant_annotation	Exception_variant_types	Value
+VT	INFO_VARIANT_TYPE	splicing	60
+VT	INFO_VARIANT_TYPE	exonic_stopgain_	100
+VT	INFO_VARIANT_TYPE	exonic_frameshift_insertion_	75
+VT	INFO_VARIANT_TYPE	exonic_frameshift_deletion_	75
+VT	INFO_VARIANT_TYPE	exonic_stoploss_	40
+VT	INFO_VARIANT_TYPE	exonic_synonymous_SNV_	-28
+VT	INFO_VEP_Consequence	splicing	60
+VT	INFO_VEP_Consequence	splice_acceptor_variant	60
+VT	INFO_VEP_Consequence	splice_donor_variant	60
+VT	INFO_VEP_Consequence	stop_gained	100
+VT	INFO_VEP_Consequence	transcript_ablation	100
+VT	INFO_VEP_Consequence	start_lost	100
+VT	INFO_VEP_Consequence	frameshift_variant	75
+VT	INFO_VEP_Consequence	frameshift_deletion	75
+VT	INFO_VEP_Consequence	frameshift_insertion	75
+VT	INFO_VEP_Consequence	stop_lost	40
+VT	INFO_VEP_Consequence	non_coding_transcript_variant	-28
+VT	INFO_VEP_Consequence	intron_variant	-28
+VT	INFO_PEXT_csq	splice_acceptor_variant	60
+VT	INFO_PEXT_csq	splice_donor_variant	60
+VT	INFO_PEXT_csq	splice_region_variant	60
+VT	INFO_PEXT_csq	stop_gained	100
+VT	INFO_PEXT_csq	start_lost	100
+VT	INFO_PEXT_csq	stop_lost	40
+VT	INFO_PEXT_csq	synonymous_variant	-28
+GN	Gene Symbol
+GN	INFO_Gene.refGene
+VS	Variant Score Threshold	Value
+#VS	Score	14

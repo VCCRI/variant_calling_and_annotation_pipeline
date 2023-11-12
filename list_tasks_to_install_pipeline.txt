@@ -1,0 +1,89 @@
+
+########## Obtain the scripts and some of the annotation reference files
+
+git clone https://github.com/VCCRI/variant_calling_and_annotation_pipeline.git
+
+After installing softwares and preparing annotation data, update the following to make the export variables point to the softwares and annotation data:
+/my/directory/variant_calling_and_annotation_pipeline/code/where_are_softwares_and_references.sh
+
+
+########## Install the R libraries used by scripts in the pipeline
+
+module load R/4.3.1
+export R_LIBS_USER=/my/directory/variant_calling_and_annotation_pipeline/victorchang_scripts/R_libraries_for_victorchang_scripts
+R
+install.packages("ggplot2")
+install.packages("ggrepel")
+install.packages("scales")
+install.packages("data.table")
+install.packages("dplyr")
+install.packages("sqldf")
+install.packages("stringr")
+install.packages("tidyr")
+
+
+########## Decompress reference data files used in the pipeline, for reference files available in this pipeline repository
+
+module load htslib
+
+cd /my/directory/variant_calling_and_annotation_pipeline/reference_data/genes_and_chromosome_positions
+tar xzvf UCSC_GRCh38_GenesAndGenePredictions_CDSexons_RefSeq_20211116.txt.tar.gz
+tar xzvf UCSC_GRCh38_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV38_20211116.txt.tar.gz
+tar xzvf UCSC_GRCh38_GenesAndGenePredictions_genes_RefSeq_20211116_plus_TAPVR1.txt.tar.gz
+tar xzvf UCSC_GRCh38_GenesAndGenePredictions_genes_wgEncodeGencodeCompV38_20211116.txt.tar.gz
+tar xzvf UCSC_GRCh38_GenesAndGenePredictions_introns_RefSeq_20210505.txt.tar.gz
+tar xzvf UCSC_GRCh38_GenesAndGenePredictions_introns_wgEncodeGencodeCompV38_20211116.txt.tar.gz
+tar xzvf UCSC_GRCh38_Repeats_20170921_LowComplexity_SimpleRepeats.bed.tar.gz
+# Instructions and python programs for creating the above genes/exons/introns files from downloaded UCSC tables data are in How_to_create_hg38_structural_variant_annotation_reference_files.txt
+
+cd /my/directory/variant_calling_and_annotation_pipeline/reference_data/annovar/humandb
+tar xzvf hg38_FANTOM5_CAGEr_humanHeart_transcriptStartSites_1column.txt.tar.gz
+tar xzvf hg38_FANTOM5_CAGEr_humanHeart_transcriptStartSites_5columns.txt.tar.gz
+tar xzvf hg38_pext_sv_for_exons_of_Artery_Aorta.bed.tar.gz
+tar xzvf hg38_pext_sv_for_exons_of_Artery_Coronary.bed.tar.gz
+tar xzvf hg38_pext_sv_for_exons_of_Heart_AtrialAppendage.bed.tar.gz
+tar xzvf hg38_pext_sv_for_genes.bed.tar.gz
+tar xzvf hg38_EHRF_r104_chr.txt.tar.gz
+tar xzvf hg38_DGVgoldStdVars_r20160516.txt.tar.gz
+tar xzvf GRCh38GenomicSuperDup.tab.tar.gz
+tar xzvf hg38_splice_dbscSNV_1_0p6.txt.tar.gz
+tar xzvf hg38_clinvar_20231028.txt.tar.gz
+tar xzvf hg38_gnomadv211_lof_metrics_by_gene.txt.tar.gz
+
+# For each of the above annovar annotation files, create an index file using the annovar index creation script:
+perl index_annovar.pl annotation_file_without_index.txt -outfile annotation_file_with_index.txt
+
+
+########## How to create other annotation files for annovar
+
+# All vep annotation reference files are downloaded from VEP: https://asia.ensembl.org/info/docs/tools/vep/script/vep_download.html
+
+# Annovar annotation files are downloaded from annovar: https://annovar.openbioinformatics.org/en/latest/user-guide/download/
+
+# The following modified annovar script is used in data preparation and annotation:
+/my/directory/variant_calling_and_annotation_pipeline/reference_data/annovar/humandb/table_annovar_ed.pl
+
+# Additional annovar annotation files are prepared by following the instructions for each file:
+cd /my/directory/variant_calling_and_annotation_pipeline/reference_data/annovar/humandb
+how_to_create_hg38_HelixMTdb_20200327.txt
+how_to_create_hg38_mitotip_20201110.txt
+how_to_create_hg38_mitomap_20201111.txt
+how_to_create_hg38_extramito.txt
+how_to_create_hg38_EHRF_r104_chr.txt
+how_to_create_hg38_BayesDel_addAF_noAF.txt
+how_to_create_hg38_EVE.txt
+how_to_create_hg38_cadd_v1p6.txt
+how_to_create_hg38_genomicSuperDups.txt
+how_to_create_gnomad211_VC_exome.txt
+how_to_create_gnomad31_VC_genome.txt
+how_to_create_hg38_gnomad211_VC_exome.txt
+how_to_create_hg38_gnomad31_VC_genome.txt
+how_to_create_hg38_gnomadMNV.txt
+how_to_create_hg38_gnomadMNVdist.txt
+how_to_create_hg38_hotspot_exons.txt
+how_to_create_hg38_mmsplice_ge2.txt
+how_to_create_hg38_mutpred_indels.txt
+how_to_create_hg38_pext_sv_for_genes.bed.txt
+how_to_create_hg38_spliceai_raw.txt
+how_to_create_hg38_spliceai_raw_noZeros.txt
+

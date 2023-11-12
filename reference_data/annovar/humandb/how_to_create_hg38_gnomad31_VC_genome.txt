@@ -1,0 +1,41 @@
+
+hg38_gnomad31_VC_genome.txt
+
+NOTE - similar process to create hg38_gnomad211_VC_exome.txt 
+
+The "_VC" in the filename indicates this has been created by us at Victor Chang
+as opposed to being downloaded from the annovar website.  Decide not to put the
+"_VC_" on the end, as this makes it harder to interpret the original gnomad
+field names.
+
+Background information
+----------------------
+We previously used hg38_gnomad30_genome.txt, which was downloaded from the annovar
+website.  gnomAD released 3.1, so we needed to create this db ourselves (not sure
+when annovar would prepare their db).  Also, the annovar db was missing some fields
+we wanted (nhomalt & some popmax values).  The annovar db included many ethnicity fields
+that we did not regularly use.  After discussion with the variant hunters, we decided to 
+use the following fields in the db:
+
+#Chr	Start	End	Ref	Alt	gnomad31_VC_genome_AC	gnomad31_VC_genome_AF	gnomad31_VC_genome_popmax	gnomad31_VC_genome_nhomalt	gnomad31_VC_genome_AF_popmax
+
+Big picture of how the database was created
+1. download the VCF files from gnomad (verify checksums)
+2. reduce the VCF to the fields we want
+3. run vt softare - decompose
+4. run vt software - decompose_blocksub
+5. run vt software - normalize
+6. combine chromosome data into one database file & run convert2annovar_ed.pl
+7. index annovar file
+
+scripts
+-------
+
+location: /my/directory/variant_calling_and_annotation_pipeline/reference_data/annovar
+
+order of scripts
+----------------
+1. gnomad_download.sh
+2. gnomad_prepare_vcf_file.sh
+3. gnomad_convert_vcf_annovar.sh
+4. gnomad_combine_chr_data.sh

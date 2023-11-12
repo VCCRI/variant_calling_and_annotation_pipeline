@@ -1,0 +1,37 @@
+PF	Population_filter	Value
+PF	gnomad211_VC_exome_AF	0.001	LE
+PF	gnomad31_VC_genome_AF	0.001	LE
+PF	gnomadMNV_AF_mnv	0.001	LE
+PF	gnomadMNVdist_AF_mnv	0.001	LE
+PD	Predictors	Type	Low	Value	Mid	Value	High	Value
+PD	DBNSFP41A_Polyphen2_HDIV_pred	A	B	0	P	2	D	4	-999	1
+PD	CADD_PHRED	N	-998	1	15	0	20.000001	2	20	4
+PD	MutPredIndel_score	N	0.546	0	0.672	1	0.850001	2	0.85	4
+VT	Variant_annotation	Exception_variant_types	Value
+VT	VARIANT_TYPE	splicing	35
+VT	VARIANT_TYPE	exonic_synonymous_SNV_	-24
+VT	VARIANT_TYPE	exonic_stopgain_	50
+VT	VARIANT_TYPE	exonic_frameshift_insertion_	45
+VT	VARIANT_TYPE	exonic_frameshift_deletion_	45
+VT	VARIANT_TYPE	exonic_stoploss_	50
+VT	VEP_Consequence	splicing	60
+VT	VEP_Consequence	splice_acceptor_variant	60
+VT	VEP_Consequence	splice_donor_variant	60
+VT	VEP_Consequence	stop_gained	100
+VT	VEP_Consequence	transcript_ablation	100
+VT	VEP_Consequence	start_lost	100
+VT	VEP_Consequence	frameshift_variant	75
+VT	VEP_Consequence	frameshift_deletion	75
+VT	VEP_Consequence	frameshift_insertion	75
+VT	VEP_Consequence	stop_lost	40
+VT	VEP_Consequence	non_coding_transcript_variant	-28
+VT	VEP_Consequence	intron_variant	-28
+VT	PEXT_csq	splice_acceptor_variant	60
+VT	PEXT_csq	splice_donor_variant	60
+VT	PEXT_csq	splice_region_variant	60
+VT	PEXT_csq	stop_gained	100
+VT	PEXT_csq	start_lost	100
+VT	PEXT_csq	stop_lost	40
+VT	PEXT_csq	synonymous_variant	-28
+GN	Gene Symbol
+GN	Gene.refGene

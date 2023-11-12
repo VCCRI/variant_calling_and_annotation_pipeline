@@ -1,0 +1,285 @@
+
+https://github.com/gagneurlab/MMSplice_MTSplice
+
+To score variants (including indels), we suggest to use primarily the deltaLogitPSI predictions, which is the default output. 
+The differential splicing efficiency (dse) model was trained from MMSplice modules and exonic variants from MaPSy, 
+thus only the predictions for exonic variants are calibrated.
+
+delta_logit_psi: The main score is predicted by MMSplice, which shows the effect of the variant on the inclusion level (PSI percent spliced in) of the exon.
+                 The score is on a logit scale. 
+                 If the score is positive, it shows that variant leads higher inclusion rate for the exon. 
+                 If the score is negative, it shows that variant leads higher exclusion rate for the exon. 
+                 If delta_logit_psi is bigger than 2 or smaller than -2, the effect of variant can be considered strong.
+
+Request the precomputed for all the SNP +-100 around exons from the creators: all_variants_mmsplice.csv.gz
+
+########## The following processing was carried out
+
+cd annovar/humandb/temp_mmsplice
+
+-rw-r--r-- 1 12G Jun 25 11:27 all_variants_mmsplice.csv.gz
+-rw-r--r-- 1 78G Jun 25 11:27 all_variants_mmsplice.csv
+
+
+##### test creation and use of annotating with mmsplice
+
+head -n 2000 all_variants_mmsplice.csv | tail -n 100 > temp_all_variants_mmsplice.csv
+
+less -S all_variants_mmsplice.csv 
+ID,exons,gene_id,gene_name,region,delta_logit_psi
+1:11869:G>A,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,acceptor,0.04356265354508622
+1:11869:G>C,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,acceptor,-0.10077125340731677
+1:11869:G>T,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,acceptor,-0.3103565363041613
+1:11870:T>A,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,acceptor,0.1702134871219351
+1:11870:T>C,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,acceptor,0.06830802549667561
+1:11870:T>G,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,acceptor,0.1185721921240054
+1:12227:A>C,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,donor,0.4835958831234518
+1:12227:A>G,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,donor,2.097750762777893
+1:12227:A>T,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,donor,-0.2660266024716481
+1:12227:A>C,1:12178-12227:+,ENSG00000223972.5_2,DDX11L1,donor,0.27589469534691835
+1:12227:A>G,1:12178-12227:+,ENSG00000223972.5_2,DDX11L1,donor,3.0138137544702266
+1:12227:A>T,1:12178-12227:+,ENSG00000223972.5_2,DDX11L1,donor,-0.26680832896066115
+1:12228:G>A,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-3.4202724240783082
+1:12228:G>C,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-4.2721963848238635
+1:12228:G>T,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-5.039264385966266
+1:12228:G>A,1:12178-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-3.4202724240783082
+1:12228:G>C,1:12178-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-4.2721963848238635
+1:12228:G>T,1:12178-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-5.039264385966266
+1:12229:T>A,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-4.414003677922883
+1:12229:T>C,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-2.220097549160497
+1:12229:T>G,1:11868-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-4.58596470677429
+1:12229:T>A,1:12178-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-4.414003677922883
+1:12229:T>C,1:12178-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-2.220097549160497
+1:12229:T>G,1:12178-12227:+,ENSG00000223972.5_2,DDX11L1,donor_dinu,-4.58596470677429
+
+cat hg19_temp_all_variants_mmsplice.txt
+#Chr	Start	End	Ref	Alt	mmsplice_delta_logit_psi
+1	12227	12227	A	G	3.0138137544702266
+1	12228	12228	G	A	-3.4202724240783082
+1	12228	12228	G	C	-4.2721963848238635
+1	12228	12228	G	T	-5.039264385966266
+1	12229	12229	T	A	-4.414003677922883
+1	12229	12229	T	C	-2.220097549160497
+1	12229	12229	T	G	-4.58596470677429
+1	12230	12230	A	C	-4.1792056445816295
+1	12230	12230	A	T	-3.366061298755328
+1	12231	12231	A	T	-2.164688365193073
+1	12232	12232	G	A	-3.947956182612679
+1	12232	12232	G	C	-4.5521314877332335
+1	12232	12232	G	T	-4.5960735389609715
+1	12233	12233	T	A	-2.058599458499057
+
+cat hg38_temp_all_variants_mmsplice.txt
+#Chr	Start	End	Ref	Alt	mmsplice_delta_logit_psi
+chr1	12227	12227	A	G	3.0138137544702266
+chr1	12228	12228	G	A	-3.4202724240783082
+chr1	12228	12228	G	C	-4.2721963848238635
+chr1	12228	12228	G	T	-5.039264385966266
+chr1	12229	12229	T	A	-4.414003677922883
+chr1	12229	12229	T	C	-2.220097549160497
+chr1	12229	12229	T	G	-4.58596470677429
+chr1	12230	12230	A	C	-4.1792056445816295
+chr1	12230	12230	A	T	-3.366061298755328
+chr1	12231	12231	A	T	-2.164688365193073
+chr1	12232	12232	G	A	-3.947956182612679
+chr1	12232	12232	G	C	-4.5521314877332335
+chr1	12232	12232	G	T	-4.5960735389609715
+chr1	12233	12233	T	A	-2.058599458499057
+
+#####
+cd annovar/humandb/temp_mmsplice
+cat temp_convert_mmsplice_data_to_annovar_table.sh
+#!/bin/bash
+#PBS -P abcd
+#PBS -q normal
+#PBS -l walltime=4:00:00
+#PBS -l mem=190GB
+#PBS -l jobfs=190G
+#PBS -l other=gdata3
+#PBS -lstorage=scratch/abcd+gdata/abcd
+#PBS -l wd
+#PBS -N hf19mmsplice
+set -euo pipefail
+
+infile=annovar/humandb/temp_mmsplice/all_variants_mmsplice.csv
+outvcf=annovar/humandb/temp_mmsplice/temp_all_variants_mmsplice.vcf
+out_avinput=annovar/humandb/temp_mmsplice/temp_all_variants_mmsplice.avinput
+outtxt=annovar/humandb/temp_mmsplice/hg19_temp_all_variants_mmsplice.txt
+
+:>$outvcf
+echo '##fileformat=VCFv4.1' >> $outvcf
+echo '##fileDate=2021-06-25' >> $outvcf
+echo '##source=MMSplice' >> $outvcf
+echo '##reference=GRCh37' >> $outvcf
+echo '##INFO=<ID=mmsplice_delta_logit_psi,Number=1,Type=Float,Description="mmsplice delta_logit_psi">' >> $outvcf
+echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> $outvcf
+
+echo 'awk' 'BEGIN {FS=",";OFS="\t"} {if (NR>1) {if (($6>=2)||($6<=-2)) {split($1,a,":"); split(a[3],b,">"); print a[1], a[2], ".", b[1], b[2], ".", ".", $6}}}' $infile '| sort -k1,1V -k2,2V -k4,4V -k5,5V | awk' 'function abs(v) {return v < 0 ? -v : v} BEGIN {"FS=\t";OFS="\t";prev_chrom="";prev_pos="";prev_ref="";prev_alt="";prev_score=0} {same_var=0; if (($1==prev_chrom)&&($2==prev_pos)&&($4==prev_ref)&&($5==prev_alt)) {same_var=1}; if (same_var==1) {if (abs($8)>abs(prev_score)) {prev_score=$8}} else {if (prev_chrom!="") {print prev_chrom,prev_pos,".",prev_ref,prev_alt,".",".","mmsplice_delta_logit_psi=" prev_score}; prev_chrom=$1; prev_pos=$2; prev_ref=$4; prev_alt=$5; prev_score=$8}} END {print prev_chrom,prev_pos,".",prev_ref,prev_alt,".",".","mmsplice_delta_logit_psi=" prev_score}' '>>' $outvcf
+
+awk 'BEGIN {FS=",";OFS="\t"} {if (NR>1) {if (($6>=2)||($6<=-2)) {split($1,a,":"); split(a[3],b,">"); print a[1], a[2], ".", b[1], b[2], ".", ".", $6}}}' $infile | sort -k1,1V -k2,2V -k4,4V -k5,5V | awk 'function abs(v) {return v < 0 ? -v : v} BEGIN {"FS=\t";OFS="\t";prev_chrom="";prev_pos="";prev_ref="";prev_alt="";prev_score=0} {same_var=0; if (($1==prev_chrom)&&($2==prev_pos)&&($4==prev_ref)&&($5==prev_alt)) {same_var=1}; if (same_var==1) {if (abs($8)>abs(prev_score)) {prev_score=$8}} else {if (prev_chrom!="") {print prev_chrom,prev_pos,".",prev_ref,prev_alt,".",".","mmsplice_delta_logit_psi=" prev_score}; prev_chrom=$1; prev_pos=$2; prev_ref=$4; prev_alt=$5; prev_score=$8}} END {print prev_chrom,prev_pos,".",prev_ref,prev_alt,".",".","mmsplice_delta_logit_psi=" prev_score}' >> $outvcf
+echo ''
+
+echo 'perl annovar/convert2annovar.pl -format vcf4' $outvcf '>' $out_avinput
+perl annovar/convert2annovar.pl -format vcf4 $outvcf > $out_avinput
+echo ''
+
+echo 'python3 annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i' $outvcf '-a' $out_avinput '-o' $outtxt
+python3 annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i $outvcf -a $out_avinput -o $outtxt
+echo ''
+
+echo 'perl annovar/index_annovar.pl $outtxt -outfile' "${outtxt}"'.idx --skipsort'
+perl annovar/index_annovar.pl $outtxt -outfile "${outtxt}".idx --skipsort
+echo ''
+
+echo 'mv' "${outtxt}"'.idx.idx' "${outtxt}"'.idx'
+mv "${outtxt}".idx.idx "${outtxt}".idx
+echo ''
+
+chmod g+w "${outtxt}"*
+echo 'Finished!'
+echo ''
+
+./temp_convert_mmsplice_data_to_annovar_table.sh
+qsub temp_convert_mmsplice_data_to_annovar_table.sh
+
+##### test hg19 mmsplice
+cd annovar/humandb/temp_mmsplice
+annovar/table_annovar_ed.pl temp_test.vcf annovar/humandb/temp_mmsplice/ -vcfinput -buildver hg19 \
+  -out temp_test_output -remove \
+  -protocol temp_all_variants_mmsplice \
+  -operation f -nastring . \
+  -arg -time
+
+#####
+cd annovar/humandb/temp_mmsplice
+cat temp_convert_hg19_mmsplice_to_hg38.sh
+#!/bin/bash
+#PBS -P abcd
+#PBS -q normal
+#PBS -l walltime=4:00:00
+#PBS -l mem=190GB
+#PBS -l jobfs=190G
+#PBS -l other=gdata3
+#PBS -lstorage=scratch/abcd+gdata/abcd
+#PBS -l wd
+#PBS -N mmsplice
+set -euo pipefail
+
+#infile=/annovar/humandb/temp_mmsplice/temp_all_variants_mmsplice.csv
+infile=annovar/humandb/temp_mmsplice/all_variants_mmsplice.csv
+tmp_infile_for_liftover=annovar/humandb/temp_mmsplice/tmp_infile_for_liftover.txt
+tmp_liftover_outfile=annovar/humandb/temp_mmsplice/temp_hg38_all_variants_mmsplice.txt
+tmp_liftover_rejected_outfile=annovar/humandb/temp_mmsplice/tmp_liftover_rejected_outfile.txt
+
+echo 'awk' 'BEGIN {FS=":";OFS="\t"} {if (NR>1) {print "chr" $1, $2, $2+1, $0}}' $infile '>' $tmp_infile_for_liftover '|| true'
+awk 'BEGIN {FS=":";OFS="\t"} {if (NR>1) {print "chr" $1, $2, $2+1, $0}}' $infile > $tmp_infile_for_liftover || true
+echo ''
+
+liftover_chain=liftover/hg19ToHg38.over.chain.gz
+echo 'liftOver' $tmp_infile_for_liftover $liftover_chain $tmp_liftover_outfile $tmp_liftover_rejected_outfile
+liftOver $tmp_infile_for_liftover $liftover_chain $tmp_liftover_outfile $tmp_liftover_rejected_outfile
+echo ''
+
+echo 'Finished!'
+echo ''
+
+./temp_convert_hg19_mmsplice_to_hg38.sh
+qsub temp_convert_hg19_mmsplice_to_hg38.sh
+
+#####
+head temp_hg38_all_variants_mmsplice.txt
+chr1	17018722	17018723	1:17345217:T>C,1:17345216-17345453:-,ENSG00000117118.9_2,SDHB,donor,1.242992528250188
+chr1	17018722	17018723	1:17345217:T>G,1:17345216-17345453:-,ENSG00000117118.9_2,SDHB,donor,0.07327214351676208
+chr1	17018723	17018724	1:17345218:T>A,1:17345216-17345453:-,ENSG00000117118.9_2,SDHB,donor,-0.6126268284409455
+
+#####
+cd annovar/humandb/temp_mmsplice
+cat temp_convert_hg38_mmsplice_data_to_annovar_table.sh
+#!/bin/bash
+#PBS -P abcd
+#PBS -q normal
+#PBS -l walltime=4:00:00
+#PBS -l mem=190GB
+#PBS -l jobfs=190G
+#PBS -l other=gdata3
+#PBS -lstorage=scratch/abcd+gdata/abcd
+#PBS -l wd
+#PBS -N mmsplice
+set -euo pipefail
+
+#infile=annovar/humandb/temp_mmsplice/temp_hg38_all_variants_mmsplice.txt
+infile=annovar/humandb/temp_mmsplice/hg38_all_variants_mmsplice.txt
+outvcf=annovar/humandb/temp_mmsplice/temp_hg38_all_variants_mmsplice.vcf
+out_avinput=annovar/humandb/temp_mmsplice/temp_hg38_all_variants_mmsplice.avinput
+outtxt=annovar/humandb/temp_mmsplice/hg38_temp_all_variants_mmsplice.txt
+
+:>$outvcf
+echo '##fileformat=VCFv4.1' >> $outvcf
+echo '##fileDate=2021-06-25' >> $outvcf
+echo '##source=MMSplice' >> $outvcf
+echo '##reference=GRCh38' >> $outvcf
+echo '##INFO=<ID=mmsplice_delta_logit_psi,Number=1,Type=Float,Description="mmsplice delta_logit_psi">' >> $outvcf
+echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> $outvcf
+
+echo 'awk' 'BEGIN {FS="\t";OFS="\t"} {split($4,a,":"); split(a[3],b,">"); split(b[2],b2,","); split($4,c,","); if ((c[6]>=2)||(c[6]<=-2)) {print $1, $2, ".", b[1], b2[1], ".", ".", "mmsplice_delta_logit_psi=" c[6]}}' $infile '| sort -k1,1V -k2,2V -k4,4V -k5,5V | awk' 'function abs(v) {return v < 0 ? -v : v} BEGIN {"FS=\t";OFS="\t";prev_chrom="";prev_pos="";prev_ref="";prev_alt="";prev_score=0} {same_var=0; if (($1==prev_chrom)&&($2==prev_pos)&&($4==prev_ref)&&($5==prev_alt)) {same_var=1}; if (same_var==1) {if (abs($8)>abs(prev_score)) {prev_score=$8}} else {if (prev_chrom!="") {print prev_chrom,prev_pos,".",prev_ref,prev_alt,".",".","mmsplice_delta_logit_psi=" prev_score}; prev_chrom=$1; prev_pos=$2; prev_ref=$4; prev_alt=$5; prev_score=$8}} END {print prev_chrom,prev_pos,".",prev_ref,prev_alt,".",".","mmsplice_delta_logit_psi=" prev_score}' '>>' $outvcf
+
+awk 'BEGIN {FS="\t";OFS="\t"} {split($4,a,":"); split(a[3],b,">"); split(b[2],b2,","); split($4,c,","); if ((c[6]>=2)||(c[6]<=-2)) {print $1, $2, ".", b[1], b2[1], ".", ".", c[6]}}' $infile | sort -k1,1V -k2,2V -k4,4V -k5,5V | awk 'function abs(v) {return v < 0 ? -v : v} BEGIN {"FS=\t";OFS="\t";prev_chrom="";prev_pos="";prev_ref="";prev_alt="";prev_score=0} {same_var=0; if (($1==prev_chrom)&&($2==prev_pos)&&($4==prev_ref)&&($5==prev_alt)) {same_var=1}; if (same_var==1) {if (abs($8)>abs(prev_score)) {prev_score=$8}} else {if (prev_chrom!="") {print prev_chrom,prev_pos,".",prev_ref,prev_alt,".",".","mmsplice_delta_logit_psi=" prev_score}; prev_chrom=$1; prev_pos=$2; prev_ref=$4; prev_alt=$5; prev_score=$8}} END {print prev_chrom,prev_pos,".",prev_ref,prev_alt,".",".","mmsplice_delta_logit_psi=" prev_score}' >> $outvcf
+echo ''
+
+echo 'perl annovar/convert2annovar.pl -format vcf4' $outvcf '>' $out_avinput
+perl annovar/convert2annovar.pl -format vcf4 $outvcf > $out_avinput
+echo ''
+
+echo 'python3 annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i' $outvcf '-a' $out_avinput '-o' $outtxt
+python3 annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i $outvcf -a $out_avinput -o $outtxt
+echo ''
+
+echo 'perl annovar/index_annovar.pl $outtxt -outfile' "${outtxt}"'.idx --skipsort'
+perl annovar/index_annovar.pl $outtxt -outfile "${outtxt}".idx --skipsort
+echo ''
+
+echo 'mv' "${outtxt}"'.idx.idx' "${outtxt}"'.idx'
+mv "${outtxt}".idx.idx "${outtxt}".idx
+echo ''
+
+chmod g+w "${outtxt}"*
+echo 'Finished!'
+echo ''
+
+./temp_convert_hg38_mmsplice_data_to_annovar_table.sh
+
+##### test hg38 mmsplice
+cd annovar/humandb/temp_mmsplice
+annovar/table_annovar_ed.pl temp_test2.vcf annovar/humandb/temp_mmsplice/ -vcfinput -buildver hg38 \
+  -out temp_test2_output -remove \
+  -protocol temp_all_variants_mmsplice \
+  -operation f -nastring . \
+  -arg -time
+
+##### test final files
+
+cd annovar/humandb/temp_mmsplice
+
+mv hg19_temp_all_variants_mmsplice.txt ../hg19_mmsplice_ge2.txt
+mv hg19_temp_all_variants_mmsplice.txt.idx ../hg19_mmsplice_ge2.txt.idx
+mv hg38_temp_all_variants_mmsplice.txt ../hg38_mmsplice_ge2.txt
+mv hg38_temp_all_variants_mmsplice.txt.idx ../hg38_mmsplice_ge2.txt.idx
+
+software/annovar/table_annovar_ed.pl temp_test_hg19.vcf annovar/humandb/ -vcfinput -buildver hg19 \
+  -out temp_test_hg19_output -remove \
+  -protocol mmsplice_ge2 \
+  -operation f -nastring . \
+  -arg -time
+
+annovar/table_annovar_ed.pl temp_test_hg38.vcf annovar/humandb/ -vcfinput -buildver hg38 \
+  -out temp_test_hg38_output -remove \
+  -protocol mmsplice_ge2 \
+  -operation f -nastring . \
+  -arg -time
+
+#####
+
+########## The following was done 2022-10-31
+
+cd annovar/humandb
+mv temp_mmsplice/ mmsplice_files_to_create_annovar_table

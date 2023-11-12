@@ -1,0 +1,34 @@
+
+
+
+http://fengbj-laboratory.org/BayesDel/BayesDel.html
+
+BayesDel
+
+BayesDel is a deleteriousness meta-score. It works for coding and non-coding variants, single nucleotide variants and small insertion / deletions. The range of the score is from -1.29334 to 0.75731. The higher the score, the more likely the variant is pathogenic.
+
+Version 1 (build date 2017-08-24)
+
+There is a universal cutoff value (0.0692655 with MaxAF, -0.0570105 without MaxAF) that was obtained by maximizing sensitivity and specificity in classifying ClinVar variants. It’s important to note that these cutoff values were designed for gene discovery research, not for clinical operations. In clinical variant classification, you may want to have a two-cutoff system, i.e., BayesDel>cutoff1 is likely pathogenic, BayesDel<cutoff2 is likely benign, while others are variants of uncertain significance (cutoff2<BayesDel<cutoff1).
+
+VICTOR: http://fengbj-laboratory.org/victor-2018-12-06/Manual.html
+
+There are several ways to obtain the BayesDel scores for your variants.
+
+1)Install and run VICTOR. If you have a large number of variants, this is the best way to do. BayesDel scores have been pre-computed for all possible single nucleotide variants in the entire human genome. They are included in the VICTOR package. The BayesDel_GST file within VICTOR’s data folder contains gene-specific cutoff values. In that file the first column is gene symbol, the second is cutoff for BayesDel without MaxAF, the third is cutoff for BayesDel with MaxAF. A script template, slurm.annotate, is also provided to annotate BayesDel for a VCF file. Please read inside the script for help about how to use it.
+
+VICTOR: http://fengbj-laboratory.org/victor-2018-12-06/Manual.html   
+
+2)Use an online calculator. If you have just a few variants, this is more convenient than running VICTOR. Please see the USE NOW page of VICTOR for the URL.
+
+VICTOR: http://fengbj-laboratory.org/victor-2018-12-06/Manual.html
+
+3)Download the “BayesDel_170824 Database” here. This database contains pre-computed BayesDel scores for missense variants. So if you have non-coding variants or small insertions/deletions, this is not the method to use. The number 170824 is the date (2017-08-24) the scores were created. There are two sets of BayesDel scores in this database, one integrated MaxAF (named BayesDel_170824_addAF) and one without (named BayesDel_170824_noAF).
+
+“BayesDel_170824 Database” here: https://drive.google.com/drive/folders/1K4LI6ZSsUGBhHoChUtegC8bgCt7hbQlA
+
+##########
+
+We see that BayesDel is hg19. Use UCSC liftover to convert it to hg38.
+
+

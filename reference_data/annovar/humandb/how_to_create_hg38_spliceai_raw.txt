@@ -1,0 +1,257 @@
+
+##### Download spliceai files
+
+How to download precomputed scores from https://basespace.illumina.com/analyses/194103939/files?projectId=66029966
+
+Log into Illumina Basespace at https://basespace.illumina.com/
+In Projects tab, find/choose project "Predicting splicing from primary sequence".
+Go into genome_scores_v1.3 then click Files, then choose genome_scores_v1.3
+Download all the files:
+spliceai_scores.masked.indel.hg19.vcf.gz
+spliceai_scores.masked.indel.hg19.vcf.gz.tbi
+spliceai_scores.masked.indel.hg38.vcf.gz
+spliceai_scores.masked.indel.hg38.vcf.gz.tbi
+spliceai_scores.masked.snv.hg19.vcf.gz
+spliceai_scores.masked.snv.hg19.vcf.gz.tbi
+spliceai_scores.masked.snv.hg38.vcf.gz
+spliceai_scores.masked.snv.hg38.vcf.gz.tbi
+spliceai_scores.raw.indel.hg19.vcf.gz
+spliceai_scores.raw.indel.hg19.vcf.gz.tbi
+spliceai_scores.raw.indel.hg38.vcf.gz
+spliceai_scores.raw.indel.hg38.vcf.gz.tbi
+spliceai_scores.raw.snv.hg19.vcf.gz
+spliceai_scores.raw.snv.hg19.vcf.gz.tbi
+spliceai_scores.raw.snv.hg38.vcf.gz
+spliceai_scores.raw.snv.hg38.vcf.gz.tbi
+
+##### Create a file containing both raw scores and masked scores, and convert them all to annovar tables.
+
+cd annovar/humandb/temp_spliceai_downloads_2021may
+
+qsub -N hg38_spliceai_both -v infile_raw=spliceai_scores.raw.snv.hg38.vcf.gz,infile_mask=spliceai_scores.masked.snv.hg38.vcf.gz,outfile=hg38_spliceai_raw_and_masked.txt,id=sai merge_spliceai_raw_and_masked_remove_zeros_short_hdrs.sh
+
+qsub -N hg19_spliceai_both -v infile_raw=spliceai_scores.raw.snv.hg19.vcf.gz,infile_mask=spliceai_scores.masked.snv.hg19.vcf.gz,outfile=hg19_spliceai_raw_and_masked.txt,id=sai merge_spliceai_raw_and_masked_remove_zeros_short_hdrs.sh
+
+qsub -N hg38_spliceaiIndels_both -v infile_raw=spliceai_scores.raw.indel.hg38.vcf.gz,infile_mask=spliceai_scores.masked.indel.hg38.vcf.gz,outfile=hg38_spliceaiIndels_raw_and_masked.txt,id=saiI merge_spliceai_raw_and_masked_remove_zeros_short_hdrs.sh
+
+qsub -N hg19_spliceaiIndels_both -v infile_raw=spliceai_scores.raw.indel.hg19.vcf.gz,infile_mask=spliceai_scores.masked.indel.hg19.vcf.gz,outfile=hg19_spliceaiIndels_raw_and_masked.txt,id=saiI merge_spliceai_raw_and_masked_remove_zeros_short_hdrs.sh
+
+cat merge_spliceai_raw_and_masked_remove_zeros_short_hdrs.sh
+
+	#!/bin/bash
+	#PBS -P abcd
+	#PBS -q normal
+	#PBS -l walltime=48:00:00
+	#PBS -l mem=190GB
+	#PBS -l other=gdata3
+	#PBS -lstorage=scratch/abcd+gdata/abcd
+	#PBS -l wd
+	#PBS -N mutpred
+	set -euo pipefail
+
+	#infile_raw=$1 # spliceai_scores.raw.snv.hg38.vcf.gz
+	#infile_mask=$2 # spliceai_scores.masked.snv.hg38.vcf.gz
+	#outfile=$3 # hg38_spliceai_raw_and_masked.txt
+	#id=$4 # sai     or     saiI
+
+	indir=annovar/humandb/temp_spliceai_downloads_2021may
+	outdir=annovar/humandb
+	tmpdir=annovar/humandb/temp_spliceai_downloads_2021may/tmp2
+
+	echo 'cp' "${indir}"'/'"${infile_raw}" "${tmpdir}"'/'"${infile_raw}"
+	cp "${indir}"/"${infile_raw}" "${tmpdir}"/"${infile_raw}"
+	echo ''
+
+	echo 'cp' "${indir}"'/'"${infile_mask}" "${tmpdir}"'/'"${infile_mask}"
+	cp "${indir}"/"${infile_mask}" "${tmpdir}"/"${infile_mask}"
+	echo ''
+
+	tmp_infile_raw="${tmpdir}"/"${infile_raw%.gz}"
+	tmp_infile_mask="${tmpdir}"/"${infile_mask%.gz}"
+
+	echo 'gunzip -f' "${tmpdir}"'/'"${infile_raw}"
+	gunzip -f "${tmpdir}"/"${infile_raw}"
+	echo ''
+
+	echo 'gunzip -f' "${tmpdir}"'/'"${infile_mask}"
+	gunzip -f "${tmpdir}"/"${infile_mask}"
+	echo ''
+
+	tmp_infile="${tmp_infile_raw%.vcf}".raw_and_masked.vcf
+
+	echo 'awk -v masked_file='"${tmp_infile_mask}" '-f annovar/humandb/temp_spliceai_downloads_2021may/merge_spliceai_raw_and_masked.awk' "${tmp_infile_raw}" '>' "${tmp_infile}"
+	awk -v masked_file="${tmp_infile_mask}" -f annovar/humandb/temp_spliceai_downloads_2021may/merge_spliceai_raw_and_masked.awk "${tmp_infile_raw}" > "${tmp_infile}"
+	echo ''
+
+	# Create vcf header for spliceai vcf
+	tmp_hdr="${tmp_infile%.vcf}".raw_and_masked.header.vcf
+
+	echo 'grep' '^##' "${tmp_infile_raw}" '| grep -v' '^##INFO=<ID=SpliceAI' '>' "${tmp_hdr}"
+	grep '^##' "${tmp_infile_raw}" | grep -v '^##INFO=<ID=SpliceAI' > "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_site,Number=string,Type=String,Description="'"${id}"'_site">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_raw_AG_DS,Number=float,Type=String,Description="'"${id}"'_raw_AG_DS">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_raw_AL_DS,Number=float,Type=String,Description="'"${id}"'_raw_AL_DS">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_raw_DG_DS,Number=float,Type=String,Description="'"${id}"'_raw_DG_DS">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_raw_DL_DS,Number=float,Type=String,Description="'"${id}"'_raw_DL_DS">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_gene,Number=float,Type=String,Description="'"${id}"'_gene">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_AG_DP,Number=integer,Type=String,Description="'"${id}"'_AG_DP">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_AL_DP,Number=integer,Type=String,Description="'"${id}"'_AL_DP">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_DG_DP,Number=integer,Type=String,Description="'"${id}"'_DG_DP">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_DL_DP,Number=integer,Type=String,Description="'"${id}"'_DL_DP">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_msk_AG_DS,Number=float,Type=String,Description="'"${id}"'_msk_AG_DS">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_msk_AL_DS,Number=float,Type=String,Description="'"${id}"'_msk_AL_DS">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_msk_DG_DS,Number=float,Type=String,Description="'"${id}"'_msk_DG_DS">' >> "${tmp_hdr}"
+	echo '##INFO=<ID='"${id}"'_msk_DL_DS,Number=float,Type=String,Description="'"${id}"'_msk_DL_DS">' >> "${tmp_hdr}"
+	echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> "${tmp_hdr}"
+	echo ''
+
+	tmp_infile2="${tmp_infile%.vcf}".raw_and_masked.formatted_info.vcf
+
+	echo 'grep -v' '^#' "${tmp_infile}" '| awk' 'BEGIN {FS="|";OFS="\t"} {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14}' '| awk -v id='"$id" 'BEGIN {FS="\t";OFS="\t"} {if if ((($10!=0)&&($10!="."))||(($11!=0)&&($11!="."))||(($12!=0)&&($12!="."))||(($13!=0)&&($13!="."))||(($18!=0)&&($18!="."))||(($19!=0)&&($19!="."))||(($20!=0)&&($20!="."))||(($21!=0)&&($21!="."))) {print $1,$2,$3,$4,$5,$6,$7,id"_site="$1":"$2":"$4":"$5";"id"_raw_AG_DS="$10";"id"_raw_AL_DS="$11 ";"id"_raw_DG_DS="$12 ";"id"_raw_DL_DS="$13 ";"id"_gene="$9 ";"id"_AG_DP="$14 ";"id"_AL_DP="$15 ";"id"_DG_DP="$16 ";"id"_DL_DP="$17 ";"id"_msk_AG_DS="$18 ";"id"_msk_AL_DS="$19 ";"id"_msk_DG_DS="$20 ";"id"_msk_DL_DS="$21}}' '| cat' "${tmp_hdr}" '- >' $tmp_infile2
+
+	grep -v '^#' "${tmp_infile}" | awk 'BEGIN {FS="|";OFS="\t"} {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14}' | awk -v id="$id" 'BEGIN {FS="\t";OFS="\t"} {if ((($10!=0)&&($10!="."))||(($11!=0)&&($11!="."))||(($12!=0)&&($12!="."))||(($13!=0)&&($13!="."))||(($18!=0)&&($18!="."))||(($19!=0)&&($19!="."))||(($20!=0)&&($20!="."))||(($21!=0)&&($21!="."))) {print $1,$2,$3,$4,$5,$6,$7,id"_site="$1":"$2":"$4":"$5";"id"_raw_AG_DS="$10";"id"_raw_AL_DS="$11 ";"id"_raw_DG_DS="$12 ";"id"_raw_DL_DS="$13 ";"id"_gene="$9 ";"id"_AG_DP="$14 ";"id"_AL_DP="$15 ";"id"_DG_DP="$16 ";"id"_DL_DP="$17 ";"id"_msk_AG_DS="$18 ";"id"_msk_AL_DS="$19 ";"id"_msk_DG_DS="$20 ";"id"_msk_DL_DS="$21}}' | cat "${tmp_hdr}" - > $tmp_infile2
+	echo ''
+
+	echo 'perl annovar/convert2annovar.pl -format vcf4' "${tmp_infile2}" '>' "${indir}"'/'"${infile_raw}"'_convert2annovar.avinput'
+	perl annovar/convert2annovar.pl -format vcf4 "${tmp_infile2}" > "${indir}"/"${infile_raw}"_convert2annovar.avinput
+	echo ''
+
+	echo 'python3 annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i' "${tmp_infile2}" '-a' "${indir}"'/'"${infile_raw}"'_convert2annovar.avinput -o' "${indir}"'/'"${outfile}"
+	python3 annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i "${tmp_infile2}" -a "${indir}"/"${infile_raw}"_convert2annovar.avinput -o "${indir}"/"${outfile}"
+	echo ''
+
+	echo 'perl annovar/index_annovar.pl' "${indir}"'/'"${outfile}" '-outfile' "${indir}"'/'"${outfile}"'.idx --skipsort'
+	perl annovar/index_annovar.pl "${indir}"/"${outfile}" -outfile "${indir}"/"${outfile}".idx --skipsort
+	echo ''
+
+	echo 'mv' "${indir}"'/'"${outfile}"'.idx.idx' "${indir}"'/'"${outfile}"'.idx'
+	mv "${indir}"/"${outfile}".idx.idx "${indir}"/"${outfile}".idx
+	echo ''
+
+	mv "${indir}"/"${outfile}" "${outdir}"
+	mv "${indir}"/"${outfile}".idx "${outdir}"
+
+	echo 'Finished!'
+	echo ''
+
+cat merge_spliceai_raw_and_masked.awk
+
+	# Spliceai raw scores file and spliceai masked scores file seem to have the same data
+	# except that 2 columns of the masked file have been set to zero.
+	# Create a new file containing the raw scores data and only the zeroed/changed masked file data.
+	#
+	# Usage:
+	# awk -v masked_file="${masked_file}" -f merge_spliceai_raw_and_masked.awk ${raw_file}" > "${raw_and_masked_file}"
+	# awk -v masked_file=temp_hg38_masked.vcf -f merge_spliceai_raw_and_masked.awk temp_hg38_raw.vcf | less -S
+	#
+	# Input files:
+	# ##fileformat=VCFv4.2
+	# ##fileDate=20191004
+	# ##reference=GRCh38/hg38
+	# ##contig=<ID=1,length=248956422>
+	# ##contig=<ID=2,length=242193529>
+	# ##contig=<ID=3,length=198295559>
+	# ##INFO=<ID=SpliceAI,Number=.,Type=String,Description="SpliceAIv1.3 variant annotation. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: ALLELE|SYMBOL|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL">
+	# #CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO
+	# 1       69091   .       A       AA      .       .       SpliceAI=AA|OR4F5|0.00|0.00|0.03|0.00|-15|42|2|24
+	# 1       69091   .       A       AC      .       .       SpliceAI=AC|OR4F5|0.01|0.00|0.00|0.00|42|25|6|-1
+	# 1       69091   .       A       AG      .       .       SpliceAI=AG|OR4F5|0.00|0.00|0.00|0.00|1|42|0|2
+
+	BEGIN {
+	    FS = "\t"
+	    OFS = "\t"
+	    in_hdr = 1
+	    mask_line = ""
+	    while (in_hdr==1) {
+		got_line = ((getline < masked_file))
+		char1 = substr($0,1,1)
+		if (char1 != "#") {
+		    in_hdr = 0
+		}
+		if (got_line == 0) {
+		    in_hdr = 0
+		}
+
+	    }
+	    if (got_line == 1) {
+		mask_line = $0
+	    }
+	}
+	{
+	    char1 = substr($0,1,1)
+	    if (char1 != "#") {
+		raw_line = $0
+
+		split(raw_line,raw_cols,"\t")
+		split(mask_line,mask_cols,"\t")
+		raw_info=raw_cols[8]
+		mask_info=mask_cols[8]
+		split(raw_info,raw_arr,"|")
+		split(mask_info,mask_arr,"|")
+
+		# raw_file : 1	69091	.	ATG	A	.	.	SpliceAI=A|OR4F5|0.00|0.02|0.07|0.40|4|42|0|2 
+		# mask_file: 1	69091	.	ATG	A	.	.	SpliceAI=A|OR4F5|0.00|0.00|0.00|0.00|4|42|0|2
+
+		if ((raw_arr[1]!=mask_arr[1]) || (raw_arr[2]!=mask_arr[2]) || (raw_arr[7]!=mask_arr[7]) || (raw_arr[8]!=mask_arr[8]) || (raw_arr[9]!=mask_arr[9]) || (raw_arr[10]!=mask_arr[10])) {
+		    print "Error: " raw_line " " mask_line
+		}
+		print raw_line "|" mask_arr[3] "|" mask_arr[4] "|" mask_arr[5] "|" mask_arr[6]
+
+		# get next masked record for next time around this awk loop of reading in the raw file
+		got_line = ((getline < masked_file))
+		if (got_line == 1) {
+		    mask_line = $0
+		}
+	    }
+	}
+
+cat raw_only.sh
+	#!/bin/bash
+	#PBS -P abcd
+	#PBS -q normal
+	#PBS -l walltime=48:00:00
+	#PBS -l mem=190GB
+	#PBS -l other=gdata3
+	#PBS -lstorage=scratch/abcd+gdata/abcd
+	#PBS -l wd
+	#PBS -N mutpred
+	set -euo pipefail
+
+	#infile_basename=$1 # ../hg38_spliceai_raw_and_masked.txt
+	#outfile_basename=$2 # ../hg38_spliceai_raw.txt
+
+	indir=annovar/humandb
+	infile="${indir}"/"${infile_basename}"
+	outfile="${outdir}"/"${outfile_basename}"
+
+	echo "cut -d$'\t' -f1-15" $infile '>' $outfile
+	cut -d$'\t' -f1-15 $infile > $outfile
+	echo ''
+
+	echo 'perl annovar/index_annovar.pl' "${outfile}" '-outfile' "${outfile}"'.idx --skipsort'
+	perl annovar/index_annovar.pl "${outfile}" -outfile "${outfile}".idx --skipsort
+	echo ''
+
+	echo 'mv' "${outfile}"'.idx.idx' "${outfile}"'.idx'
+	mv "${outfile}".idx.idx "${outfile}".idx
+	echo ''
+
+	echo 'Finished!'
+	echo ''
+
+qsub -N hg38_spliceai_raw -v infile_basename=hg38_spliceai_raw_and_masked.txt,outfile_basename=hg38_spliceai_raw.txt raw_only.sh
+qsub -N hg38_spliceaiIndels_raw -v infile_basename=hg38_spliceaiIndels_raw_and_masked.txt,outfile_basename=hg38_spliceaiIndels_raw.txt raw_only.sh
+qsub -N hg19_spliceai_raw -v infile_basename=hg19_spliceai_raw_and_masked.txt,outfile_basename=hg19_spliceai_raw.txt raw_only.sh
+qsub -N hg19_spliceaiIndels_raw -v infile_basename=hg19_spliceaiIndels_raw_and_masked.txt,outfile_basename=hg19_spliceaiIndels_raw.txt raw_only.sh
+
+
+##### do a test
+
+annovar/table_annovar_ed.pl temp7.vcf annovar/humandb/ -vcfinput -buildver hg38 \
+  -out temp7_output -remove \
+  -protocol spliceai_raw \
+  -operation f -nastring . \
+  -arg -time
+
+
+

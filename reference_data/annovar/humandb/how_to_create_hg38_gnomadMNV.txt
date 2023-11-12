@@ -1,0 +1,231 @@
+
+https://gnomad.broadinstitute.org/downloads#v2-multi-nucleotide-variants
+
+https://www.nature.com/articles/s41467-019-12438-5
+#
+In order to provide an overview of the functional impact of MNVs (Fig. 1b), 
+we examined all phased high-quality SNV pairs (i.e., SNV pairs that pass stringent filtering criteria; see the Methods section) 
+within 2 bp distance of each other across the 125,748 exome-sequenced individuals from our gnomAD 2.1 data set, 
+resulting in the discovery of 31,575 MNVs exist within the same codon. 
+#
+These findings come with the caveat that variants in repetitive regions will have higher error rates due to slippage and misalignment errors, 
+but we have reduced this risk by applying random forest filtering for individual sites, 
+as well as removing all the variants in low-complexity regions from our analysis (see the Methods section).
+#
+Methods
+MNV filtering
+In the gnomAD MNV analysis, variant pairs for which one or both of their components have low quality reads were filtered out. 
+Specifically, we only selected the variant sites that pass the Random Forest filtering, resulting in acceptance of 53.3% of the initial MNV candidates (Supplementary Fig. 12a). 
+We also filtered out variant sites that are classified as low-complexity regions (LCRs) identified with the symmetric DUST algorithm56 at a score threshold of 30, 
+and additionally applied adjusted threshold criteria (GQ ≥ 20, DP ≥ 10, and allele balance > 0.2 for heterozygote genotypes) for filtering individual variants (Supplementary Table 7). 
+For each MNV site, we annotated the number of alleles that appear as MNV, as well as the number of individuals carrying the MNV as a homozygous variant. 
+The distribution of MNV sites that contain homozygous MNVs is shown in Supplementary Fig. 13. We also collapsed the MNV patterns that are reverse complements of each other, 
+after observing that the number of MNVs are roughly symmetric (before collapsing, the ratio of each MNV pattern to its corresponding reverse complement pattern was mostly close to 1,
+ with 0.95 being the lowest and 1.10 being the highest for adjacent MNVs) (Supplementary Fig. 14). 
+All the MNV patterns in the main text and figures are equivalent to their reverse complement, and we do not distinguish them.
+
+https://gnomad.broadinstitute.org/variant/2-74699761-AC-GA?dataset=gnomad_r2_1
+				2-74699761-A-G					2-74699762-C-A
+				Exomes		Genomes		Total		Exomes		Genomes		Total
+	Filter			Pass		Pass		Pass				No variant		
+	Allele Count		1		1		2		1				1
+	Allele Number		251216		31404		282620		250882				250882
+	Allele Frequency	0.000003981	0.00003184	0.000007077	0.000003986			0.000003986
+
+https://gnomad.broadinstitute.org/variant/2-74699761-A-G?dataset=gnomad_r2_1
+				Exomes		Genomes		Total
+	Filter			Pass		Pass	
+	Allele Count		1		1		2
+	Allele Number		251216		31404		282620
+	Allele Frequency	0.000003981	0.00003184	0.000007077
+	Popmax Filtering AF	-		-
+	(95% confidence)
+	Number of homozygotes	0		0		0
+
+https://gnomad.broadinstitute.org/variant/2-74699762-C-A?dataset=gnomad_r2_1
+				Exomes		Genomes	Total
+	Filter			Pass			No variant	
+	Allele Count		1			1
+	Allele Number		250882			250882
+	Allele Frequency	0.000003986		0.000003986
+	Popmax Filtering AF	-
+	(95% confidence)		
+	Number of homozygotes	0			0
+
+Here are all the columns for the MNVs consisting of 2 or 3 adjacent SNPs:
+
+locus.position: position of the 1st SNV of MNV
+locus.contig: chromosome of the 1st SNV of MNV
+gene_id: (canonical) gene ID
+gene_name: (canonical) gene name
+transcript_id: (canonical) transcript ID
+categ: MNV category
+snv1: position-ref-alt of snv1
+snv2: position-ref-alt of snv2
+mnv: position-ref-alt of MNV
+snv1_consequence: consequence of snv1
+snv2_consequence: consequence of snv2
+mnv_consequence: consequence of MNV
+snv1_codons: codon change of snv1
+snv2_codons: codon change of snv2
+mnv_codons      : codon change of MNV
+snv1_amino_acids: amino acid change of snv1
+snv2_amino_acids: amino acid change of snv2
+mnv_amino_acids: amino acid change of MNV
+snv1_lof: whether snv1 is flagged as lof
+snv2_lof: whether snv2 is flagged as lof        
+mnv_lof: whether MNV is flagged as lof
+n_indv: number of individuals carrying the MNV
+AC_mnv: allele count of the MNV
+AF_mnv: "allele frequency" of the MNV, defined as allele count of the MNV divided by the minimum allele number of snv1 or snv2.        
+n_homhom: number of individuals who are homozygous carriers of the MNV          
+n_indv_ex: number of individuals carrying the MNV, for the exome dataset        
+AC_mnv_ex: allele count of the MNV for the exome dataset
+AF_mnv_ex: "allele frequency" of the MNV, defined as allele count of the MNV divided by the minimum allele number of snv1 or snv2, in the exome dataset
+n_homhom_ex: number of individuals who are homozygous carriers of the MNV, for the exome dataset        
+n_indv_gen: number of individuals carrying the MNV, for the genome dataset
+AC_mnv_ex: allele count of the MNV for the exome dataset        
+AC_mnv_gen: allele count of the MNV for the genome dataset      
+AF_mnv_gen: "allele frequency" of the MNV, defined as allele count of the MNV divided by the minimum allele number of snv1 or snv2, in the exome dataset
+n_homhom_gen: number of individuals who are homozygous carriers of the MNV, for the genome dataset
+AC_snv1: allele count of snv1
+AC_snv1_ex: allele count of snv1, for the exome dataset
+AC_snv1_gen: allele count of snv1, for the genome dataset
+AN_snv1: allele number of snv1
+AN_snv1_ex: allele number of snv1, for the exome dataset        
+n_homhom_gen: number of individuals who are homozygous carriers of the MNV, for the genome dataset
+AC_snv1: allele count of snv1
+AC_snv1_ex: allele count of snv1, for the exome dataset
+AC_snv1_gen: allele count of snv1, for the genome dataset
+AN_snv1: allele number of snv1
+AN_snv1_ex: allele number of snv1, for the exome dataset        
+AN_snv1_gen: allele number of snv1, for the genome dataset              
+AC_snv2: allele count of snv2  
+AC_snv2_ex: allele count of snv2, for the genome dataset                
+AC_snv2_gen: allele count of snv2, for the genome dataset
+AN_snv2: allele number of snv2
+AN_snv2_ex: allele number of snv2, for the exome dataset        
+AN_snv2_gen: allele number of snv2, for the genome dataset              
+filter_snv1_ex: filtering status of snv1, for exome    
+filter_snv1_gen: filtering status of snv1, for genome          
+filter_snv2_ex: filtering status of snv2, for exome            
+filter_snv2_gen: filtering status of snv2, for genome  
+
+##########
+
+cd annovar/humandb/temp_mnv
+
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/readme.md
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/gnomad_mnv_coding.tsv
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/gnomad_mnv_coding_3bp.tsv
+
+head gnomad_mnv_coding.tsv
+locus.position	locus.contig	gene_id	gene_name	transcript_id	categ				snv1		snv2		mnv			snv1_consequence	snv2_consequence	mnv_consequence		snv1_codons	snv2_codons	mnv_codons	snv1_amino_acids	snv2_amino_acids	mnv_amino_acids	snv1_lof	snv2_lof	mnv_lof	n_indv	AC_mnv	AF_mnv			n_homhom	AC_snv1	AN_snv1		AC_snv2	AN_snv2		n_indv_ex	AC_mnv_ex	AF_mnv_ex		n_homhom_ex	AC_snv1_ex	AN_snv1_ex	filter_snv1_ex		AC_snv2_ex	AN_snv2_ex	filter_snv2_ex	n_indv_gen	AC_mnv_gen	AF_mnv_gen	n_homhom_gen	AC_snv1_gen	AN_snv1_gen	filter_snv1_gen	AC_snv2_gen	AN_snv2_gen	filter_snv2_gen
+100203693	1		ENSG00000156869	FRRS1	ENST00000287474	Unchanged			1-100203693-G-A	1-100203694-C-T	1-100203693-GC-AT	synonymous_variant	missense_variant	missense_variant	agC/agT		aGc/aAc		aGC/aAT		S			S/N			S/N		None		None		None	3.0	3.0	1.193592793882439e-05	0		119250	282396.0	3	251342.0	3.0		3.0		1.1947526463771118e-05	0		104474		251098.0	[]			3		251342.0	[]		00		0		14776		31298.0		[]		0		
+100212983	1		ENSG00000156869	FRRS1	ENST00000287474	Changed missense		1-100212983-G-A	1-100212984-T-A	1-100212983-GT-AA	missense_variant	missense_variant	missense_variant	aCt/aTt		Act/Tct		ACt/TTt		T/I			T/S			T/F		None		None		None	1.0	1.0	4.114379757251594e-06	0		1	243636.0	1	243050.0	1.0		1.0		4.114379757251594e-06	0		1		243636.0	[]			1		243050.0	[]		0		0		0		0			0		
+100330041	1		ENSG00000162688	AGL	ENST00000294724	Partially changed missense	1-100330041-G-C	1-100330042-A-T	1-100330041-GA-CT	missense_variant	missense_variant	missense_variant	aGa/aCa		agA/agT		aGA/aCT		R/T			R/S			R/T		None		None		None	1.0	1.0	3.18775900541919e-05	0		1	31370.0	1	31394.0	0.0		0.0		0		0			0		1		1		3.18775900541919e-05	0		1		31370.0		[]		1		31394.0		[]
+100527429	1		ENSG00000156875	HIAT1	ENST00000370152	Changed missense		1-100527429-C-A	1-100527430-A-T	1-100527429-CA-AT	missense_variant	synonymous_variant	missense_variant	gCa/gAa		gcA/gcT		gCA/gAT		A/E			A			A/D		None		None		None	1.0	1.0	3.985842288192341e-06	0		1	250888.0	1	251016.0	1.0		1.0		3.985842288192341e-06	0		1		250888.0	[]			1		251016.0	[]		0		0		0		0			0		
+
+head gnomad_mnv_coding_3bp.tsv
+locus	tnv_cons	gene_name	gene_id	transcript_id	tnv	snv1	snv2	snv3	snv12_mnv_categ	snv13_mnv_categ	snv23_mnv_categ	snv1_cons	snv2_cons	snv3_cons	n_tnv	n_tnv_hom	AC_tnv	AF_tnv	AN_snv1	AN_snv2	AN_snv3	n_tnv_ex	n_tnv_hom_ex	AC_tnv_ex	AF_tnv_ex	AN_snv1_ex	AN_snv2_ex	AN_snv3_ex	snv12_mnv_n_indv_ex	snv23_mnv_n_indv_ex	snv13_mnv_n_indv_ex	n_tnv_gen	n_tnv_hom_gen	AC_tnv_gen	AF_tnv_gen	AN_snv1_gen	AN_snv2_gen	AN_snv3_gen	snv12_mnv_n_indv_gen	snv23_mnv_n_indv_gen	snv13_mnv_n_indv_gen
+1:100598866	missense_variant	TRMT13	ENSG00000122435	ENST00000370141	1-100598866-GCG-ATA	1-100598866-G-A	1-100598867-C-T	1-100598868-G-A	Changed missense	Unchanged	Unchanged	missense_variant	missense_variant	synonymous_variant	4	4	8	3.188800931129872e-05	281210.0	281198.0	250878.0	4	4	8	3.199974400204798e-05	250012.0	250002.0	250878.0	12059044.0	0	0	0		31198.0	31196.0		14022	0	0.0
+1:100598866	missense_variant	TRMT13	ENSG00000122435	ENST00000370141	1-100598866-GCG-ATA	1-100598866-G-A	1-100598867-C-T	1-100598868-G-A	Changed missense	Unchanged	Unchanged	missense_variant	missense_variant	synonymous_variant	4	4	8	3.188800931129872e-05	281210.0	281198.0	250878.0	4	4	8	3.199974400204798e-05	250012.0	250002.0	250878.0	12059044.0	0	0	0		31198.0	31196.0		14022	0	0.0
+1:100598866	missense_variant	TRMT13	ENSG00000122435	ENST00000370141	1-100598866-GCG-ATA	1-100598866-G-A	1-100598867-C-T	1-100598868-G-A	Changed missense	Unchanged	Unchanged	missense_variant	missense_variant	synonymous_variant	4	4	8	3.188800931129872e-05	281210.0	281198.0	250878.0	4	4	8	3.199974400204798e-05	250012.0	250002.0	250878.0	12059044.0	0	0	0		31198.0	31196.0		14022	0	0.0
+
+# Extract chrom pos ref alt AF_mnv n_indv n_homhom mnv_consequence
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($9,a,"-"); print a[1], a[2], a[3], a[4], $24, $22, $25, $12}}' gnomad_mnv_coding.tsv > temp_gnomad_mnv_coding_2bp.tsv
+
+# Extract chrom pos ref alt AF_tnv n_tnv n_tnv_hom tnv_consequence
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($6,a,"-"); print a[1], a[2], a[3], a[4], $19, $16, $17, $2}}' gnomad_mnv_coding_3bp.tsv > temp_gnomad_mnv_coding_3bp.tsv
+
+# cat the 2bp and 3bp MNVs and format it for input to liftover
+cat temp_gnomad_mnv_coding_2bp.tsv temp_gnomad_mnv_coding_3bp.tsv | sort -k1,1V -k2,2V -k3,3 -k4,4 | uniq > temp_gnomad_mnv_coding_2bp_3bp_hg19.tsv
+cat temp_gnomad_mnv_coding_2bp.tsv temp_gnomad_mnv_coding_3bp.tsv | awk 'BEGIN {FS="\t";OFS="\t"} {print "chr"$1, $2, $2+length($3), $3":"$4":"$5":"$6":"$7":"$8}' > temp_gnomad_mnv_coding_2bp_3bp.bed
+
+# liftover hg19 to hg38
+liftOver temp_gnomad_mnv_coding_2bp_3bp.bed /g/data/jb96/software/liftover/hg19ToHg38.over.chain.gz temp_gnomad_mnv_coding_2bp_3bp_liftover_outfile.txt temp_gnomad_mnv_coding_2bp_3bp_liftover_rejected_outfile.txt
+
+wc -l temp_gnomad_mnv_coding_2bp_3bp.bed
+wc -l temp_gnomad_mnv_coding_2bp_3bp_liftover_outfile.txt
+wc -l temp_gnomad_mnv_coding_2bp_3bp_liftover_rejected_outfile.txt
+
+	1	100203693	GC	AT	1.193592793882439e-05	3.0	0	missense_variant
+	1	100212983	GT	AA	4.114379757251594e-06	1.0	0	missense_variant
+	1	100330041	GA	CT	3.18775900541919e-05	1.0	0	missense_variant
+	1	100527429	CA	AT	3.985842288192341e-06	1.0	0	missense_variant
+	1	100542778	GG	AT	4.045340172655119e-06	1.0	0	missense_variant
+	1	100587079	GC	AA	8.310893919750009e-06	2.0	0	missense_variant
+	1	100587951	GC	AT	4.1601144863506645e-06	1.0	0	missense_variant
+	1	100598866	GC	AT	0.8391560395166395	134612.0	101357	missense_variant
+	1	100598866	GCG	ACA	3.188800931129872e-05	4.0	4	missense_variant
+	1	100598867	CG	TA	3.188800931129872e-05	4.0	4	missense_variant
+
+# reformat fields
+echo -e "chrom\tpos\tref\talt\tgnomadMNV_AF_mnv\tgnomadMNV_n_indv\tgnomadMNV_n_homhom\tgnomadMNV_mnv_consequence" > temp_mnv_hdr.txt
+awk 'BEGIN {FS="\t";OFS="\t"} {split($4,a,":"); print $1, $2, a[1], a[2], a[3], a[4], a[5], a[6]}' temp_gnomad_mnv_coding_2bp_3bp_liftover_outfile.txt | sort -k1,1V -k2,2V -k3,3 -k4,4 | uniq > temp_gnomad_mnv_coding_2bp_3bp_liftover_outfile_reformatted.txt
+
+# convert hg19 to a vcf file
+echo '##fileformat=VCFv4.1' > hg19_gnomadMNV.vcf
+echo '##fileDate=2021-01-10' >> hg19_gnomadMNV.vcf
+cut -d$'\t' -f5- temp_mnv_hdr.txt | sed -e 's/\t/\n/g' | awk 'BEGIN {FS="\t";OFS="\t"} {print "##INFO=<ID=" $1 ",Number=.,Type=String,Description=\"" $1 "\">"}' >> hg19_gnomadMNV.vcf
+echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> hg19_gnomadMNV.vcf
+awk 'BEGIN {FS="\t";OFS="\t"} {print $1, $2, ".", $3, $4, ".", ".", "gnomadMNV_AF_mnv=" $5 ";gnomadMNV_n_indv=" $6 ";gnomadMNV_n_homhom=" $7 ";gnomadMNV_mnv_consequence=" $8}' temp_gnomad_mnv_coding_2bp_3bp_hg19.tsv >> hg19_gnomadMNV.vcf
+
+	##INFO=<ID=gnomadMNV_AF_mnv,Number=.,Type=String,Description="gnomadMNV_AF_mnv">
+	##INFO=<ID=gnomadMNV_n_indv,Number=.,Type=String,Description="gnomadMNV_n_indv">
+	##INFO=<ID=gnomadMNV_n_homhom,Number=.,Type=String,Description="gnomadMNV_n_homhom">
+	##INFO=<ID=gnomadMNV_mnv_consequence,Number=.,Type=String,Description="gnomadMNV_mnv_consequence">
+	chr1	99738137	99738139	GC:AT:1.193592793882439e-05:3.0:0:missense_variant
+	chr1	99747427	99747429	GT:AA:4.114379757251594e-06:1.0:0:missense_variant
+	chr1	99864485	99864487	GA:CT:3.18775900541919e-05:1.0:0:missense_variant
+	chr1	100061873	100061875	CA:AT:3.985842288192341e-06:1.0:0:missense_variant
+	chr1	100077222	100077224	GG:AT:4.045340172655119e-06:1.0:0:missense_variant
+	chr1	100121523	100121525	GC:AA:8.310893919750009e-06:2.0:0:missense_variant
+	chr1	100122395	100122397	GC:AT:4.1601144863506645e-06:1.0:0:missense_variant
+	chr1	100133310	100133312	GC:AT:0.8391560395166395:134612.0:101357:missense_variant
+	chr1	100133310	100133313	GCG:ACA:3.188800931129872e-05:4.0:4:missense_variant
+	chr1	100133311	100133313	CG:TA:3.188800931129872e-05:4.0:4:missense_variant
+
+# convert hg38 to a vcf file
+echo '##fileformat=VCFv4.1' > hg38_gnomadMNV.vcf
+echo '##fileDate=2021-01-10' >> hg38_gnomadMNV.vcf
+cut -d$'\t' -f5- temp_mnv_hdr.txt | sed -e 's/\t/\n/g' | awk 'BEGIN {FS="\t";OFS="\t"} {print "##INFO=<ID=" $1 ",Number=.,Type=String,Description=\"" $1 "\">"}' >> hg38_gnomadMNV.vcf
+echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> hg38_gnomadMNV.vcf
+awk 'BEGIN {FS="\t";OFS="\t"} {print $1, $2, ".", $3, $4, ".", ".", "gnomadMNV_AF_mnv=" $5 ";gnomadMNV_n_indv=" $6 ";gnomadMNV_n_homhom=" $7 ";gnomadMNV_mnv_consequence=" $8}' temp_gnomad_mnv_coding_2bp_3bp_liftover_outfile_reformatted.txt  >> hg38_gnomadMNV.vcf
+
+# Convert the hg19 vcf to an annovar reference table
+
+cd annovar
+
+perl convert2annovar.pl -format vcf4 humandb/temp_mnv/hg19_gnomadMNV.vcf > humandb/hg19_gnomadMNV_convert2annovar.avinput
+
+python3 convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i humandb/temp_mnv/hg19_gnomadMNV.vcf -a humandb/hg19_gnomadMNV_convert2annovar.avinput -o humandb/hg19_gnomadMNV.txt
+
+perl index_annovar.pl humandb/hg19_gnomadMNV.txt -outfile humandb/hg19_gnomadMNV.txt.idx --skipsort
+
+mv humandb/hg19_gnomadMNV.txt.idx.idx humandb/hg19_gnomadMNV.txt.idx
+
+# Convert the hg38 vcf to an annovar reference table
+
+cd annovar
+
+perl convert2annovar.pl -format vcf4 humandb/temp_mnv/hg38_gnomadMNV.vcf > humandb/hg38_gnomadMNV_convert2annovar.avinput
+
+python3 convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i humandb/temp_mnv/hg38_gnomadMNV.vcf -a humandb/hg38_gnomadMNV_convert2annovar.avinput -o humandb/hg38_gnomadMNV.txt
+
+perl index_annovar.pl humandb/hg38_gnomadMNV.txt -outfile humandb/hg38_gnomadMNV.txt.idx --skipsort
+
+mv humandb/hg38_gnomadMNV.txt.idx.idx humandb/hg38_gnomadMNV.txt.idx
+
+##########
+
+# Annotate a sample using this new gnomad MNV reference table. This is done for every sample.
+
+cd /my/sample/directory
+/g/data/jb96/software/annovar/table_annovar_ed.pl my_sample.vcf humandb/ -vcfinput -buildver hg38 \
+  -out my_sample_annotated -remove \
+  -protocol hg38_gnomadMNV \
+  -operation f -nastring . \
+  -arg -time
+
+##########

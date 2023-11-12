@@ -1,0 +1,92 @@
+
+wget https://mitomap.org/downloads/mitomap.dump.sql.gz
+gunzip mitomap.dump.sql.gz
+
+grep -n Pathogenic mitomap.dump.sql
+	from 844598 to 2590856
+
+grep -n 'COPY mitomap.genbank (genbank_id, tpos, qpos, tnt, qnt, ntchange, allele, calc_locus, cal_aachange, conservation, haplogroup, haplogroup_verbose, disease, mmutid, rtmutid, poly_id, subvar_cnt, is_polym, ismmut, isrtmut, is_submitted) FROM stdin;' mitomap.dump.sql
+	line 840306
+
+grep -n '\\\.' mitomap.dump.sql | less -S
+	line 2609342
+
+head -n 840306 mitomap.dump.sql | tail -n 1 > temp_hdr.txt
+head -n 2609341 mitomap.dump.sql | tail -n 1769035 > temp_body.txt
+
+#COPY mitomap.genbank (genbank_id, tpos, qpos, tnt, qnt, ntchange, allele, calc_locus, cal_aachange, conservation, haplogroup, haplogroup_verbose, disease, mmutid, rtmutid, poly_id, subvar_cnt, is_polym, ismmut, isrtmut, is_submitted) FROM stdin;
+
+sed 's/COPY mitomap.genbank (//' temp_hdr.txt | sed 's/) FROM stdin;//' | sed -e 's/, /\t/g' > temp_hdr2.txt
+
+cat temp_body.txt | sed "sX<i class='fa fa-arrow-up' style='color:red' aria-hidden='t'></i><i class='fa fa-arrow-up' style='color:red' aria-hidden='t'></i><i class='fa fa-arrow-up' style='color:red' aria-hidden='t'>X|confirmed_pathogenic|X" | sed "sX<i class='fa fa-arrow-up' style='color:red' aria-hidden='t'></i><i class='fa fa-arrow-up' style='color:red' aria-hidden='t'>X|likely_pathogenic|X" | sed "sX<i class='fa fa-arrow-up' style='color:yellow' aria-hidden='t'></i>X|possibly_pathogenic|X" | sed "sX<i class='fa fa-arrow-down' style='color:green' aria-hidden='t'></i><i class='fa fa-arrow-down' style='color:green' aria-hidden='t'></i>X|likely_benign|X" | sed "sX<i class='fa fa-arrow-down' style='color:green' aria-hidden='t'></i>X|possibly_benign|X" | sed "sX<i class='fa fa-asterisk' style='color:green' aria-hidden='t'></i>X|frequency_alert|X" | sed "sX<span style='display:inline-block;white-space:nowrap;'>XX" | sed "sX</span>XX" | sed "sXMitoTIP<br>XX" | sed "sX<a href='/cgi-bin/mitotip?pos=.*&alt=.*&quart=.*' target=_blank>XX" | sed "sX<u>XX" | sed "sX</u>XX" | sed "sX</a>XX" | sed "sX<i>XX" | sed "sX</i>XX" | sed -e "sX X_Xg" | sed "sX||X|Xg" | sed "sX_|X|Xg" | sed "sX|_X|Xg" | sed "sX_/X|Xg" | sed "sX/_X|Xg" > temp_body2.txt
+
+# /g/data/jb96/software/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk would avoid repeated values in the same field but takes too long to run
+sed "s/|/, /g" temp_body2.txt | awk 'BEGIN {FS="\t";OFS="\t"} {printf "chrM" OFS $2 OFS "." OFS $4 OFS; if ($5==":") {printf "-" OFS} else {printf $5 OFS}; printf $6 OFS "." OFS $8 OFS $9 OFS $10 OFS "." OFS "." OFS $13 "\n"}' | sed -e 's/\t\t/\t.\t/g' | sort | uniq | sort -k1,1 -k2,2V -k3,3V -k4,4 -k5,5 | awk -v key=1,2,3,4,5 -v collapse=6,7,8,9,10,11,12,13 -f /g/data/jb96/software/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk | sed "s/, /|/g" | sed -e "s/|\t/\t/g" | sed "s/||/|/g"| sed "s/|_/|/g" | sed "s/_|/|/g" | sed "s/\t\t/\t.\t/g" | sed "s/\t$/\t./g" > temp_body3.txt
+
+cat temp_body3.txt | awk 'BEGIN {FS="\t";OFS="\t"} {print "chrM", $2, ".", $4, $5, ".", ".", "Mitomap_ntchange=" $6 ";Mitomap__calc_locus=" $8 ";Mitomap_cal_aachange=" $9 ";Mitomap_conservation=" $10 ";Mitomap_haplogroup=" $11 ";Mitomap_haplogroup_verbose=" $12 ";Mitomap_disease=" $13}' | sed -e 's/=;/=.;/g' | sed -e 's/=\t/=./' > temp_body4.txt
+
+:>temp.vcf
+echo '##fileformat=VCFv4.2' >> temp.vcf
+echo '##fileDate=2020-01-01' >> temp.vcf
+echo '##reference=GRCh38' >> temp.vcf
+echo '##contig=<ID=chrM,length=16569>' >> temp.vcf
+echo '##INFO=<ID=Mitomap_ntchange,Number=1,Type=String,Description="Mitomap ntchange">' >> temp.vcf
+echo '##INFO=<ID=Mitomap_calc_locus,Number=1,Type=String,Description="Mitomap calc_locus">' >> temp.vcf
+echo '##INFO=<ID=Mitomap_cal_aachange,Number=1,Type=String,Description="Mitomap cal_aachange">' >> temp.vcf
+echo '##INFO=<ID=Mitomap_conservation,Number=1,Type=String,Description="Mitomap conservation">' >> temp.vcf
+echo '##INFO=<ID=Mitomap_haplogroup,Number=1,Type=String,Description="Mitomap haplogroup">' >> temp.vcf
+echo '##INFO=<ID=Mitomap_haplogroup_verbose,Number=1,Type=String,Description="Mitomap haplogroup_verbose">' >> temp.vcf
+echo '##INFO=<ID=Mitomap_disease,Number=1,Type=String,Description="Mitomap disease">' >> temp.vcf
+echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> temp.vcf
+
+cat temp_body4.txt >> temp.vcf
+
+# Let's just delete variants with N or other invalid characters in the REF or the ALT
+# Let's convert any characters that will later cause problems in the perl annovar program to characters that won't cause problems.
+awk 'BEGIN {FS="\t";OFS="\t"} {if (!($4~/N/) && !($5~/N/) && !($5~/Y/) && !($5~/R/) && !($5~/S/) && !($5~/M/) && !($5~/:/)) {print $0}}' temp.vcf | sed 's/%/percent/g' | sed 's!/!|!g' | sed 's/_|_/|/g' | sed 's/_|/|/g' | sed 's/|_/|/g' | sed 's/:/_/g' | sed 's/-/_/g' > temp2.vcf
+
+perl ../convert2annovar.pl -format vcf4 temp2.vcf > hg38_mitomap_20201111_convert2annovar.avinput
+
+python3 annovar/annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i temp2.vcf -a hg38_mitomap_20201111_convert2annovar.avinput -o hg38_mitomap_20201111.txt
+
+perl ../index_annovar.pl hg38_mitomap_20201111.txt -outfile hg38_mitomap_20201111.txt.idx
+# If the *.txt has been copied by annovar to *.txt.idx and there is a *.txt.idx.idx, then do:
+mv hg38_mitomap_20201111.txt.idx.idx hg38_mitomap_20201111.txt.idx
+
+cp hg38_mitomap_20201111.txt hg19_mitomap_20201111.txt
+cp hg38_mitomap_20201111.txt.idx hg19_mitomap_20201111.txt.idx
+
+# Annotate a sample using the new clinvar reference table. This is done for every sample.
+
+cd /my/sample/directory
+perl table_annovar.pl my_sample.vcf humandb/ -vcfinput -buildver hg38 \
+  -out my_sample_annotated -remove \
+  -protocol mitomap_20201111 \
+  -operation f -nastring . \
+  -arg -time
+
+perl table_annovar_ed.pl my_sample.vcf humandb/ -vcfinput -buildver hg38 \
+  -out my_sample_annotated2 -remove \
+  -protocol refGene,mitomap_20201111 \
+  -operation g,f -nastring . \
+  -arg -exonicsplicing,-time
+
+/g/data/jb96/software/annovar/table_annovar_ed.pl /g/data/a32/quarterly_x1_10TB/WGS/BAM/AGHA/AGHA_6/working_directory/mitochondria/test_M_3243_clinvvar_20201010.HelixMTdb.MitImpact.mitotip.hg38_multianno.vcf /g/data/jb96/software/annovar/humandb/ -vcfinput -buildver hg38 \
+  -out /g/data/a32/quarterly_x1_10TB/WGS/BAM/AGHA/AGHA_6/working_directory/mitochondria/test_M_3243_clinvvar_20201010.HelixMTdb.MitImpact.mitotip.mitomap -remove \
+  -protocol mitomap_20201111 \
+  -operation f -nastring . \
+  -arg -time
+
+
+##########
+
+# Note that unfortunately error messages are still being generated from table_annovar.pl when using hg38_mitomap_20201111.txt.
+
+Argument "L1c" isn't numeric in numeric eq (==) at /g/data/jb96/software/annovar/annotate_variation.pl line 2583, <DB> line 302312.
+Argument "." isn't numeric in numeric eq (==) at /g/data/jb96/software/annovar/annotate_variation.pl line 2583, <DB> line 499635.
+Argument "L1c3a" isn't numeric in numeric eq (==) at /g/data/jb96/software/annovar/annotate_variation.pl line 2583, <DB> line 499635.
+Argument "A" isn't numeric in numeric eq (==) at /g/data/jb96/software/annovar/annotate_variation.pl line 2583, <DB> line 979837.
+Argument "M10a" isn't numeric in numeric eq (==) at /g/data/jb96/software/annovar/annotate_variation.pl line 2583, <DB> line 1095028.
+Argument "77.78percent" isn't numeric in numeric eq (==) at /g/data/jb96/software/annovar/annotate_variation.pl line 2583, <DB> line 1095028.
+
+

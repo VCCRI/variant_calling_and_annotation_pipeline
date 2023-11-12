@@ -1,0 +1,165 @@
+
+##### Download spliceai files
+
+How to download precomputed scores from https://basespace.illumina.com/analyses/194103939/files?projectId=66029966
+
+Log into Illumina Basespace at https://basespace.illumina.com/
+In Projects tab, find/choose project "Predicting splicing from primary sequence".
+Go into genome_scores_v1.3 then click Files, then choose genome_scores_v1.3
+Download all the files:
+spliceai_scores.masked.indel.hg19.vcf.gz
+spliceai_scores.masked.indel.hg19.vcf.gz.tbi
+spliceai_scores.masked.indel.hg38.vcf.gz
+spliceai_scores.masked.indel.hg38.vcf.gz.tbi
+spliceai_scores.masked.snv.hg19.vcf.gz
+spliceai_scores.masked.snv.hg19.vcf.gz.tbi
+spliceai_scores.masked.snv.hg38.vcf.gz
+spliceai_scores.masked.snv.hg38.vcf.gz.tbi
+spliceai_scores.raw.indel.hg19.vcf.gz
+spliceai_scores.raw.indel.hg19.vcf.gz.tbi
+spliceai_scores.raw.indel.hg38.vcf.gz
+spliceai_scores.raw.indel.hg38.vcf.gz.tbi
+spliceai_scores.raw.snv.hg19.vcf.gz
+spliceai_scores.raw.snv.hg19.vcf.gz.tbi
+spliceai_scores.raw.snv.hg38.vcf.gz
+spliceai_scores.raw.snv.hg38.vcf.gz.tbi
+
+##########
+
+cd annovar/humandb/temp_spliceai_downloads_2021may
+
+cat convert_spliceai_to_annovar.sh
+
+#!/bin/bash
+#PBS -P abcd
+#PBS -q normal
+#PBS -l walltime=48:00:00
+#PBS -l mem=190GB
+#PBS -l other=gdata3
+#PBS -lstorage=scratch/abcd+gdata/abcd
+#PBS -l wd
+#PBS -N mutpred
+set -euo pipefail
+
+#infile=$1 # spliceai_scores.raw.snv.hg38.vcf.gz
+#outfile=$2 # hg38_spliceai_raw.txt
+#id=$3 # sai     or     saiI     or     saiM     or     saiIM
+#id2=$4 # raw     or     masked
+#id3=$5 # spliceai     or    spliceaiIndels
+
+indir=annovar/humandb/temp_spliceai_downloads_2021may
+outdir=annovar/humandb
+tmpdir=annovar/humandb/temp_spliceai_downloads_2021may/tmp2
+
+echo 'cp' "${indir}"'/'"${infile_raw}" "${tmpdir}"'/'"${infile}"
+cp "${indir}"/"${infile_raw}" "${tmpdir}"/"${infile}"
+echo ''
+
+tmp_infile="${tmpdir}"/"${infile%.gz}"
+
+echo 'gunzip -f' "${tmpdir}"'/'"${infile}"
+gunzip -f "${tmpdir}"/"${infile}"
+echo ''
+
+# Create vcf header for spliceai vcf
+tmp_hdr="${tmp_infile%.vcf}".header.vcf
+
+echo 'grep' '^##' "${tmp_infile}" '| grep -v' '^##INFO=<ID=SpliceAI' '>' "${tmp_hdr}"
+grep '^##' "${tmp_infile}" | grep -v '^##INFO=<ID=SpliceAI' > "${tmp_hdr}"
+echo '##INFO=<ID='"${id}"'_site,Number=string,Type=String,Description="'"${id3}"'_'"${id2}"'_site">' >> "${tmp_hdr}"
+echo '##INFO=<ID='"${id}"'_AG_DS,Number=float,Type=String,Description="'"${id3}"'_'"${id2}"'_acceptor_gain_delta_score">' >> "${tmp_hdr}"
+echo '##INFO=<ID='"${id}"'_AL_DS,Number=float,Type=String,Description="'"${id3}"'_'"${id2}"'_acceptor_loss_delta_scor">' >> "${tmp_hdr}"
+echo '##INFO=<ID='"${id}"'_DG_DS,Number=float,Type=String,Description="'"${id3}"'_'"${id2}"'_donor_gain_delta_score">' >> "${tmp_hdr}"
+echo '##INFO=<ID='"${id}"'_DL_DS,Number=float,Type=String,Description="'"${id3}"'_'"${id2}"'_donor_loss_delta_score">' >> "${tmp_hdr}"
+echo '##INFO=<ID='"${id}"'_gene,Number=float,Type=String,Description="'"${id3}"'_'"${id2}"'_gene">' >> "${tmp_hdr}"
+echo '##INFO=<ID='"${id}"'_AG_DP,Number=integer,Type=String,Description="'"${id3}"'_'"${id2}"'_acceptor_gain_delta_position">' >> "${tmp_hdr}"
+echo '##INFO=<ID='"${id}"'_AL_DP,Number=integer,Type=String,Description="'"${id3}"'_'"${id2}"'_acceptor_loss_delta_position">' >> "${tmp_hdr}"
+echo '##INFO=<ID='"${id}"'_DG_DP,Number=integer,Type=String,Description="'"${id3}"'_'"${id2}"'_donor_gain_delta_position">' >> "${tmp_hdr}"
+echo '##INFO=<ID='"${id}"'_DL_DP,Number=integer,Type=String,Description="'"${id3}"'_'"${id2}"'_donor_loss_delta_position">' >> "${tmp_hdr}"
+echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> "${tmp_hdr}"
+echo ''
+
+tmp_infile2="${tmp_infile%.vcf}".formatted_info.vcf
+
+echo 'grep -v' '^#' "${tmp_infile}" '| awk' 'BEGIN {FS="|";OFS="\t"} {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10}' '| awk -v id='"$id" 'BEGIN {FS="\t";OFS="\t"} {if ((($10!=0)&&($10!="."))||(($11!=0)&&($11!="."))||(($12!=0)&&($12!="."))||(($13!=0)&&($13!="."))) { print $1,$2,$3,$4,$5,$6,$7, id"_site="$1":"$2"-"$2":"$4":"$5";" id"_AG_DS="$10";" id"_AL_DS="$11";" id"_DG_DS="$12";" id"_DL_DS="$13";" id"_gene="$9";" id"_AG_DP="$14";" id"_AL_DP="$15";" id"_DG_DP="$16";" id"_DL_DP="$17 }}' '| cat' "${tmp_hdr}" '- >' $tmp_infile2
+grep -v '^#' "${tmp_infile}" | awk 'BEGIN {FS="|";OFS="\t"} {print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10}' | awk -v id="$id" 'BEGIN {FS="\t";OFS="\t"} {if ((($10!=0)&&($10!="."))||(($11!=0)&&($11!="."))||(($12!=0)&&($12!="."))||(($13!=0)&&($13!="."))) { print $1,$2,$3,$4,$5,$6,$7, id"_site="$1":"$2"-"$2":"$4":"$5";" id"_AG_DS="$10";" id"_AL_DS="$11";" id"_DG_DS="$12";" id"_DL_DS="$13";" id"_gene="$9";" id"_AG_DP="$14";" id"_AL_DP="$15";" id"_DG_DP="$16";" id"_DL_DP="$17 }}' | cat "${tmp_hdr}" - > $tmp_infile2
+echo ''
+
+echo 'perl annovar/convert2annovar.pl -format vcf4' "${tmp_infile2}" '>' "${indir}"'/'"${infile}"'_noZeros_convert2annovar.avinput'
+perl annovar/convert2annovar.pl -format vcf4 "${tmp_infile2}" > "${indir}"/"${infile}"_noZeros_convert2annovar.avinput
+echo ''
+
+echo 'python3 annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i' "${tmp_infile2}" '-a' "${indir}"'/'"${infile}"'_noZeros_convert2annovar.avinput -o' "${indir}"'/'"${outfile}"
+python3 annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i "${tmp_infile2}" -a "${indir}"/"${infile}"_noZeros_convert2annovar.avinput -o "${indir}"/"${outfile}"
+echo ''
+
+echo 'perl annovar/index_annovar.pl' "${indir}"'/'"${outfile}" '-outfile' "${indir}"'/'"${outfile}"'.idx --skipsort'
+perl annovar/index_annovar.pl "${indir}"/"${outfile}" -outfile "${indir}"/"${outfile}".idx --skipsort
+echo ''
+
+echo 'mv' "${indir}"'/'"${outfile}"'.idx.idx' "${indir}"'/'"${outfile}"'.idx'
+mv "${indir}"/"${outfile}".idx.idx "${indir}"/"${outfile}".idx
+echo ''
+
+mv "${indir}"/"${outfile}" "${outdir}"
+mv "${indir}"/"${outfile}".idx "${outdir}"
+
+echo 'Finished!'
+echo ''
+
+##########
+
+qsub -N hg38_spliceai_raw -v infile=spliceai_scores.raw.snv.hg38.vcf.gz,outfile=hg38_spliceai_raw_noZeros.txt,id=sai,id2=raw,id3=spliceai convert_spliceai_to_annovar.sh
+
+qsub -N hg38_spliceaiIndels_raw -v infile=spliceai_scores.raw.indel.hg38.vcf.gz,outfile=hg38_spliceaiIndels_raw_noZeros.txt,id=saiI,id2=raw,id3=spliceaiIndels convert_spliceai_to_annovar.sh
+
+qsub -N hg19_spliceai_raw -v infile=spliceai_scores.raw.snv.hg19.vcf.gz,outfile=hg19_spliceai_raw_noZeros.txt,id=sai,id2=raw,id3=spliceai convert_spliceai_to_annovar.sh
+
+qsub -N hg19_spliceaiIndels_raw -v infile=spliceai_scores.raw.indel.hg19.vcf.gz,outfile=hg19_spliceaiIndels_raw_noZeros.txt,id=saiI,id2=raw,id3=spliceaiIndels convert_spliceai_to_annovar.sh
+
+qsub -N hg38_spliceai_mask -v infile=spliceai_scores.masked.snv.hg38.vcf.gz,outfile=hg38_spliceai_masked_noZeros.txt,id=saiM,id2=masked,id3=spliceai convert_spliceai_to_annovar.sh
+
+qsub -N hg38_spliceaiIndels_mask -v infile=spliceai_scores.masked.indel.hg38.vcf.gz,outfile=hg38_spliceaiIndels_masked_noZeros.txt,id=saiIM,id2=masked,id3=spliceaiIndels convert_spliceai_to_annovar.sh
+
+qsub -N hg19_spliceai_mask -v infile=spliceai_scores.masked.snv.hg19.vcf.gz,outfile=hg19_spliceai_masked_noZeros.txt,id=saiM,id2=masked,id3=spliceai convert_spliceai_to_annovar.sh
+
+qsub -N hg19_spliceaiIndels_mask -v infile=spliceai_scores.masked.indel.hg19.vcf.gz,outfile=hg19_spliceaiIndels_masked_noZeros.txt,id=saiIM,id2=masked,id3=spliceaiIndels convert_spliceai_to_annovar.sh
+
+##########
+
+annovar/table_annovar_ed.pl temp13.vcf annovar/humandb/ -vcfinput -buildver hg38 \
+  -out temp13_output -remove \
+  -protocol spliceai_raw_noZeros \
+  -operation f -nastring . \
+  -arg -time
+
+temp_hg38.vcf							raw								masked
+1       69091   69091   A       T       1:69091-69091:A:T       0.00    0.02    0.02    0.10					0.00	0.00	0.02	0.00
+1	69091	69091	-	G	1:69091-69091:A:AG	0.00	0.02	0.04	0.11					
+1	69092	69095	TGGT	-	1:69091-69091:ATGGT:A	0.00	0.06	0.00	0.40					0.00	0.06	0.00	0.40
+1	69093	69093	-	G	1:69093-69093:G:GG									0.00	0.00	0.02	0.00
+Y	25968728	25968728	T	C	Y:25968728-25968728:T:C	0.00	0.00	0.06	0.00
+Y	25968733	25968735	AAT	-	Y:25968732-25968732:AAAT:A	0.00	0.00	0.32	0.01
+Y	25968734	25968736	ATC	-	Y:25968733-25968733:AATC:A						0.00	0.00	0.01	0.00
+Y	25968735	25968735	T	A	Y:25968735-25968735:T:A							0.00	0.00	0.03	0.00
+
+annovar/table_annovar_ed.pl temp_hg38.vcf annovar/humandb/ -vcfinput -buildver hg38 \
+  -out temp_hg38_output -remove \
+  -protocol spliceai_raw_noZeros,spliceaiIndels_raw_noZeros,spliceai_masked_noZeros,spliceaiIndels_masked_noZeros \
+  -operation f,f,f,f -nastring . \
+  -arg -time,-time,-time,-time
+
+temp_hg19.vcf										raw					masked
+1       69091	69091	A       G       1:69091-69091:A:G	0.00    0.01    0.07    0.11		0.00    0.00    0.07    0.00
+1       69112	69112	-       A       1:69112-69112:C:CA	0.00    0.05    0.01    0.07		0.00    0.00    0.01    0.00
+1       69139	69141	CAG     -       1:69138-69138:CCAG:C	0.04    0.13    0.04    0.08		0.04    0.00    0.04    0.00
+Y	28114874	28114874	A	C	Y:28114874-28114874:A:C							0.00	0.00	0.01	0.00
+Y	28114875	28114875	T	C	Y:28114875-28114875:T:C		0.00	0.00	0.06	0.00
+Y	28114880	28114882	AAT	-	Y:28114879-28114879:AAAT:A	0.00	0.00	0.32	0.01		0.00	0.00	0.32	0.00
+
+annovar/table_annovar_ed.pl temp_hg19.vcf annovar/humandb/ -vcfinput -buildver hg19 \
+  -out temp_hg19_output -remove \
+  -protocol spliceai_raw_noZeros,spliceaiIndels_raw_noZeros,spliceai_masked_noZeros,spliceaiIndels_masked_noZeros \
+  -operation f,f,f,f -nastring . \
+  -arg -time,-time,-time,-time
+

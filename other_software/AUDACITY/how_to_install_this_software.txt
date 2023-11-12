@@ -1,0 +1,155 @@
+
+https://sourceforge.net/projects/audacity-tool/.
+downloaded AUDACITY.0.2.tar.gz on 2021-05-27
+
+publication:
+https://www.sciencedirect.com/science/article/pii/S2001037020303354
+Magi A, Giangregorio T, Semeraro R, Carangelo G, Palombo F, Romeo G, Seri M, Pippucci T. 
+AUDACITY: A comprehensive approach for the detection and classification of Runs of Homozygosity in medical and population genomics. 
+Comput Struct Biotechnol J. 2020 Jul 14;18:1956-1967. doi: 10.1016/j.csbj.2020.07.003. PMID: 32774790; PMCID: PMC7394861.
+
+##### Installing
+
+cd /my/directory/variant_calling_and_annotation_pipeline/other_software/AUDACITY
+tar xzvf AUDACITY.0.2.tar.gz
+
+cd /my/directory/variant_calling_and_annotation_pipeline/other_software/AUDACITY/AUDACITY/lib/Fortran
+module load intel-compiler/2021.1.1
+module load R/4.0.0
+R CMD SHLIB DIDOH3M2Lib.f
+	ifort  -fpic  -g  -c DIDOH3M2Lib.f -o DIDOH3M2Lib.o
+	icc -shared -L/apps/R/4.0.0/lib64/R/lib -L/usr/local/lib64 -o DIDOH3M2Lib.so DIDOH3M2Lib.o -lifport -lifcoremt -limf -lsvml -lm -lipgo -lirc -lpthread -lirc_s -ldl -L/apps/R/4.0.0/lib64/R/lib -lR
+ls -l
+	-rwxr-x--- 1 emr913 jb96  2682 Apr 26  2019 DIDOH3M2Lib.f
+	-rw-r--r-- 1 emr913 jb96 11112 Jun 10 09:31 DIDOH3M2Lib.o
+	-rwxr-xr-x 1 emr913 jb96 15296 Jun 10 09:31 DIDOH3M2Lib.so
+
+# The vcftools software needs to be accessible to AUDACITY on the PATH regardless of where you have installed vcftools
+PATH=$PATH:/my/directory/software/vcftools-0.14/bin/bin:/my/directory/software/vcftools-0.14/bin:/g/data/jb96/software/vcftools-0.14
+
+cd /my/directory/variant_calling_and_annotation_pipeline/other_software/AUDACITY/AUDACITY
+mkdir AUDACITYPrepare.p
+mv DataInfo/ AUDACITYPrepare.p
+mv doc/ AUDACITYPrepare.p
+mv lib/ AUDACITYPrepare.p
+mkdir AUDACITYAnalyze.p
+cp -R AUDACITYPrepare.p/* AUDACITYAnalyze.p
+
+cd /my/directory/variant_calling_and_annotation_pipeline/other_software/AUDACITY/AUDACITY/AUDACITYAnalyze.p/lib/R
+nano VCFAnalyze.R
+# Comment out the following lines
+FolderVCFIn<-"/home/tommaso/CEU"
+OutName<-"1KG-test2CEU"
+MasterPathOut<-"/home/alberto/ProvaHomoVCF"
+Ratio2<-0.01
+assembly<-"hg19"
+MAFIn<-"false"
+NormProb<-1
+PT1 <- 0.1
+PT2 <- 0.1
+NormDist<-1000000
+PathTool<-"/home/alberto/HomoTool"
+
+# Edit VCFAnalyze.R in order to fix bugs that arise with the original version
+
+nano AUDACITYAnalyze.p/lib/R/VCFAnalyze.R
+# Change this line:
+StringHeader<-paste("/bin/zcat ",VCFFileIn," | head -500",sep="")
+# to this:
+StringHeader<-paste("/bin/zcat ",VCFFileIn," | grep '^#'",sep="")
+
+# Add these 3 lines:
+LabelNoGeno<-"\\./\\."
+LabelHomoR<-"0/0"
+LabelHomoA<-"1/1"
+# Just before this line:
+if (length(grep("/",GenoFirst))!=0)
+
+# After this line:
+Ratio1<-HetRatio[kk]
+# add this:
+Ratio1=0.6
+# because HetCount.txt contains nothing for n_het/n_tot
+sample	n_tot	n_het	n_homalt	n_homref	n_het/n_tot
+20W000966	64711	36905	27806	0.570304894067469
+
+# Add this line:
+ChrVecMAF<-as.character(c(1:22))
+# before these lines:
+if (MAFIn=="false")
+{
+  ChrVecMAF<-as.character(c(1:22))
+
+# After this line:
+VCFFileIn<-file.path(FolderVCFIn,paste(OutName,".vcf.gz",sep=""))
+# add this line:
+FileMAFIn<-file.path(FolderVCFIn,paste(OutName,".frq.gz",sep=""))
+
+##### Run AUDACITY
+
+module load intel-compiler/2021.1.1
+module load R/4.0.0
+module load htslib
+export PATH=$PATH:/my/directory/variant_calling_and_annotation_pipeline/other_software/software/vcftools-0.14/bin/bin:/g/data/jb96/software/vcftools-0.14/bin:/g/data/jb96/software/vcftools-0.14
+export PERL5LIB=/my/directory/variant_calling_and_annotation_pipeline/other_software/software/vcftools-0.14/share/perl5:/my/directory/variant_calling_and_annotation_pipeline/other_software/software/vcftools-0.14/bin/share/perl5:/my/directory/variant_calling_and_annotation_pipeline/other_software/software/vcftools-0.14/src/perl:${PERL5LIB}
+
+# Make the output directory and under that a specific directory for each sample chromosome, because AUDACITY expects that
+
+mkdir /my/directory/variant_calling_and_annotation_pipeline/audacity_homozygosity
+mkdir /my/directory/variant_calling_and_annotation_pipeline/audacity_homozygosity/SAMPLE_ONE_chr21
+
+# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7394861/
+# For WGS data (panels a and b) DIDOH3M2 obtained the best results with R2=1/1000, R1=2/100, p1=0.1, p2=0.1, PNorm=1, dNorm=100000, 
+# while PLINK with heterozygote allowance 1, kb threshold 200 and SNP threshold 1/1000. 
+# For WES data (panels c and d) DIDOH3M2 obtained the best results with R2=1/10000, R1=4/100, p1=0.1, p2=0.1, PNorm=1, dNorm=100000, 
+# while PLINK with heterozygote allowance 1, kb threshold 100 and SNP threshold 1/1000.
+
+perl /my/directory/variant_calling_and_annotation_pipeline/other_software/AUDACITY/AUDACITY/AUDACITYPrepare.pl -I /my/directory/variant_calling_and_annotation_pipeline/working_directory/vcf_chroms_MNP_annotate_samples/SAMPLE_ONE_chr21.vcf -F false -O /my/directory/variant_calling_and_annotation_pipeline/audacity_homozygosity -L SAMPLE_ONE_chr21
+
+perl /my/directory/variant_calling_and_annotation_pipeline/other_software/AUDACITY/AUDACITY/AUDACITYAnalyze.pl -I /my/directory/variant_calling_and_annotation_pipeline/audacity_homozygosity -L output_audacity_SAMPLE_ONE_chr21 -F output_audacity_SAMPLE_ONE_chr21.frq.gz -P1 0.1 -P2 0.1 -R2 0.001 -ND 100000 -NP 1 -AS hg38 -O /my/directory/variant_calling_and_annotation_pipeline/audacity_homozygosity
+
+##### Look at the output. The main output of runs of homozygosity is DIDOH3M2Regions.txt
+
+wc -l *.txt
+    109 SAMPLE_ONE_DIDOH3M2Ind.txt
+    109 SAMPLE_ONE_DIDOH3M2Regions.txt
+ 194133 SAMPLE_ONE_DIDOH3M2Results.txt
+
+head /my/directory/variant_calling_and_annotation_pipeline/audacity_homozygosity/SAMPLE_ONE_chr21/SAMPLE_ONE/SAMPLE_ONE_DIDOH3M2Results.txt
+chr21	5033538	5033539	3	1
+chr21	5033713	5033714	2	1
+chr21	5033965	5033966	2	1
+chr21	5034009	5034010	2	1
+chr21	5034229	5034230	2	1
+chr21	5035020	5035021	2	1
+chr21	5035657	5035658	2	1
+chr21	5035845	5035846	2	1
+chr21	5049385	5049386	3	1
+chr21	5050068	5050069	3	1
+
+head /my/directory/variant_calling_and_annotation_pipeline/audacity_homozygosity/SAMPLE_ONE_chr21/SAMPLE_ONE/SAMPLE_ONE_DIDOH3M2Regions.txt 
+chr21	5273356	5277827	4471	0	19	0	NA
+chr21	6798031	6805560	7529	0	9	0	NA
+chr21	7379432	7428174	48742	0	9	0	NA
+chr21	13229905	13264585	34680	0	86	2	NA
+chr21	13275300	13290197	14897	0	34	0	NA
+chr21	13301510	13318911	17401	0	18	0	NA
+chr21	13370996	13378410	7414	0	27	0	NA
+chr21	13380118	13413007	32889	0	66	1	NA
+chr21	13414091	13428926	14835	0	36	0	NA
+chr21	13439716	13459286	19570	0	24	0	NA
+
+head /my/directory/variant_calling_and_annotation_pipeline/audacity_homozygosity/SAMPLE_ONE_chr21/SAMPLE_ONE/SAMPLE_ONE_DIDOH3M2Ind.txt 
+chr21	786	804
+chr21	2147	2155
+chr21	3138	3146
+chr21	19713	19800
+chr21	19821	19854
+chr21	19868	19885
+chr21	19926	19952
+chr21	19966	20032
+chr21	20043	20078
+chr21	20142	20165
+
+
+

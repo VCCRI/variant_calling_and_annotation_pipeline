@@ -1,0 +1,1272 @@
+########## Pext data was derived from GTEX data of frequency of transcripts in various tissues.
+########## Here, we accumulate pext scores for each gene.
+########## Thus, this pext data is a proxy for the frequency of use of transcript regions in various tissues.
+########## We output these pext scores per gene region (contains exon and intron regions, and the score doesn't really apply to the intron regions)
+########## and per gene exon region (contains only apparent exons).
+########## A pext score of 1 means that this region is in a transcript that is always expressed in this tissue.
+########## A pext score of nearly zero means that this region is in a transcript that is almost never expressed in this tissue.
+########## These frequencies/scores could have been derived directly from the GTEX data source.
+########## It would be a lot of work to redo that.
+
+########## Where does the pext data come from
+
+Cummings BB, Karczewski KJ, Kosmicki JA, Seaby EG, Watts NA, Singer-Berk M, Mudge JM, Karjalainen J, Satterstrom FK, O'Donnell-Luria AH, Poterba T, Seed C, Solomonson M, Alföldi J; Genome Aggregation Database Production Team; Genome Aggregation Database Consortium, Daly MJ, MacArthur DG. Transcript expression-aware annotation improves rare variant interpretation. Nature. 2020 May;581(7809):452-458. doi: 10.1038/s41586-020-2329-2. Epub 2020 May 27. PMID: 32461655; PMCID: PMC7334198.
+
+"Here, we develop a transcript-level annotation metric, the proportion expressed across transcripts (pext), which summarizes isoform quantifications for variants. 
+We calculate this metric using 11,706 tissue samples from the Genotype Tissue Expression project(2) (GTEx) 
+and show that it clearly differentiates between weakly and highly evolutionarily conserved exons, a proxy for functional importance."
+
+https://github.com/macarthur-lab/tx_annotation
+"We have released the pext values for every possible SNV in the genome in both a tsv and HT format in the folder: gs://gnomad-public/papers/2019-tx-annotation/pre_computed/"
+
+# Install google cloud tools to obtain the precomputed pext values.
+
+cd annovar/humandb/temp_pext
+
+sudo apt install curl
+# Interactive installation
+curl https://sdk.cloud.google.com | bash
+# Restart your shell:
+exec -l $SHELL
+# Run gcloud init to initialize the gcloud environment:
+gcloud init
+
+# Download the precomputed pext values for GRCh37.
+
+gsutil du gs://gnomad-public/papers/2019-tx-annotation/pre_computed/* # list the available files
+gsutil cp gs://gnomad-public/papers/2019-tx-annotation/pre_computed/all.possible.snvs.tx_annotated.021520.ht/README.txt . # not much info
+gsutil cp gs://gnomad-public/papers/2019-tx-annotation/pre_computed/all.possible.snvs.tx_annotated.GTEx.v7.021520.tsv.bgz . # this is the precomputed pext file
+gsutil cp gs://gnomad-public/papers/2019-tx-annotation/pre_computed/all.possible.snvs.tx_annotated.021520.ht/metadata.json.gz . # this says it is GRCh37
+
+# What does the file look like
+
+less -S all.possible.snvs.tx_annotated.GTEx.v7.021520.tsv.gz
+
+1       1007901 G       A       [{"ensg":"ENSG00000237330","csq":"missense_variant","symbol":"RNF223","lof":null,"lof_flag":null,"Cells_Transformedfibroblasts":1.0,"Prostate":1.0,"Sple
+1       1007901 G       C       [{"ensg":"ENSG00000237330","csq":"missense_variant","symbol":"RNF223","lof":null,"lof_flag":null,"Cells_Transformedfibroblasts":1.0,"Prostate":1.0,"Sple
+1       1007901 G       T       [{"ensg":"ENSG00000237330","csq":"missense_variant","symbol":"RNF223","lof":null,"lof_flag":null,"Cells_Transformedfibroblasts":1.0,"Prostate":1.0,"Sple
+1       1007902 A       C       [{"ensg":"ENSG00000237330","csq":"synonymous_variant","symbol":"RNF223","lof":null,"lof_flag":null,"Cells_Transformedfibroblasts":1.0,"Prostate":1.0,"Sp
+1       1007902 A       G       [{"ensg":"ENSG00000237330","csq":"synonymous_variant","symbol":"RNF223","lof":null,"lof_flag":null,"Cells_Transformedfibroblasts":1.0,"Prostate":1.0,"Sp
+1       1007902 A       T       [{"ensg":"ENSG00000237330","csq":"synonymous_variant","symbol":"RNF223","lof":null,"lof_flag":null,"Cells_Transformedfibroblasts":1.0,"Prostate":1.0,"Sp
+
+chrom   pos     ref     alt     tx_annotation
+
+1       69091   A       C       [{"ensg":"ENSG00000186092","csq":"start_lost","symbol":"OR4F5","lof":null,"lof_flag":null,"Cells_Transformedfibroblasts":"NaN",
+"Prostate":"NaN","Spleen":"NaN","Brain_FrontalCortex_BA9_":"NaN","SmallIntestine_TerminalIleum":"NaN",
+"MinorSalivaryGland":"NaN","Artery_Coronary":"NaN","Skin_SunExposed_Lowerleg_":"NaN",
+"Cells_EBV_transformedlymphocytes":"NaN","Brain_Hippocampus":"NaN","Esophagus_Muscularis":"NaN",
+"Brain_Nucleusaccumbens_basalganglia_":"NaN","Artery_Tibial":"NaN","Brain_Hypothalamus":"NaN",
+"Adipose_Visceral_Omentum_":"NaN","Cervix_Ectocervix":"NaN","Brain_Spinalcord_cervicalc_1_":"NaN",
+"Brain_CerebellarHemisphere":"NaN","Nerve_Tibial":"NaN","Breast_MammaryTissue":"NaN",
+"Liver":"NaN","Skin_NotSunExposed_Suprapubic_":"NaN","AdrenalGland":"NaN","Vagina":"NaN",
+"Pancreas":"NaN","Lung":"NaN","FallopianTube":"NaN","Pituitary":"NaN","Muscle_Skeletal":"NaN",
+"Colon_Transverse":"NaN","Artery_Aorta":"NaN","Heart_AtrialAppendage":"NaN","Adipose_Subcutaneous":"NaN",
+"Esophagus_Mucosa":"NaN","Heart_LeftVentricle":"NaN","Brain_Cerebellum":"NaN",
+"Brain_Cortex":"NaN","Thyroid":"NaN","Brain_Substantianigra":"NaN","Kidney_Cortex":"NaN",
+"Uterus":"NaN","Stomach":"NaN","WholeBlood":"NaN","Bladder":"NaN",
+"Brain_Anteriorcingulatecortex_BA24_":"NaN",
+"Brain_Putamen_basalganglia_":"NaN","Brain_Caudate_basalganglia_":"NaN","Colon_Sigmoid":"NaN",
+"Cervix_Endocervix":"NaN","Ovary":"NaN","Esophagus_GastroesophagealJunction":"NaN","Testis":"NaN",
+"Brain_Amygdala":"NaN","mean_proportion":"NaN"}]
+
+1       899382  A       T       [{"ensg":"ENSG00000187961","csq":"missense_variant","symbol":"KLHL17","lof":null,"lof_flag":null,"Cells_Transformedfibroblasts":0.37661454792658056,
+"Prostate":0.40076112412177994,"Spleen":0.3649650959860384,"Brain_FrontalCortex_BA9_":0.5506849315068494,"SmallIntestine_TerminalIleum":0.37577639751552794,
+"MinorSalivaryGland":0.3578643578643579,"Artery_Coronary":0.39549339549339546,"Skin_SunExposed_Lowerleg_":0.4215364412344058,
+"Cells_EBV_transformedlymphocytes":0.346093504863508,"Brain_Hippocampus":0.5390428211586902,"Esophagus_Muscularis":0.42984590429845904,
+"Brain_Nucleusaccumbens_basalganglia_":0.5146443514644352,"Artery_Tibial":0.43925233644859824,"Brain_Hypothalamus":0.5235507246376813,
+"Adipose_Visceral_Omentum_":0.37912673056443025,"Cervix_Ectocervix":0.4338010982306284,"Brain_Spinalcord_cervicalc_1_":0.5115089514066496,
+"Brain_CerebellarHemisphere":0.4443372564152036,"Nerve_Tibial":0.36805180787911496,"Breast_MammaryTissue":0.37531276063386154,
+"Liver":0.3318903318903319,"Skin_NotSunExposed_Suprapubic_":0.41340411413404116,"AdrenalGland":0.3761669412410763,"Vagina":0.37068477645727227,
+"Pancreas":0.35359116022099446,"Lung":0.3554735547355473,"FallopianTube":0.39321789321789324,"Pituitary":0.4006224988883948,"Muscle_Skeletal":0.4811320754716981,
+"Colon_Transverse":0.375673249551167,"Artery_Aorta":0.4049217002237136,"Heart_AtrialAppendage":0.4019607843137255,"Adipose_Subcutaneous":0.3800701051577366,
+"Esophagus_Mucosa":0.3581296493092455,"Heart_LeftVentricle":0.4266666666666667,"Brain_Cerebellum":0.4032018974206937,
+"Brain_Cortex":0.4763169544046038,"Thyroid":0.36334712058542795,"Brain_Substantianigra":0.5032938076416337,"Kidney_Cortex":0.3781009409751925,
+"Uterus":0.4015700483091787,"Stomach":0.38590956887486855,"WholeBlood":0.4098360655737705,"Bladder":0.42278617710583144,
+"Brain_Anteriorcingulatecortex_BA24_":0.5595238095238095,
+"Brain_Putamen_basalganglia_":0.5318892900120337,"Brain_Caudate_basalganglia_":0.5417118093174431,"Colon_Sigmoid":0.41938110749185664,
+"Cervix_Endocervix":0.4137571651902032,"Ovary":0.3737373737373738,"Esophagus_GastroesophagealJunction":0.42261427425821974,"Testis":0.46279306829765543,
+"Brain_Amygdala":0.5224111282843895,"mean_proportion":0.4219632386440355}]
+
+########## Convert hg19 pext data to the format of a bedtools reference file to be used by bedtools annotation, with tissue scores per gene specified by gene region
+
+cd annovar/humandb/temp_pext
+
+mv all.possible.snvs.tx_annotated.GTEx.v7.021520.tsv.bgz all.possible.snvs.tx_annotated.GTEx.v7.021520.tsv.gz
+gunzip all.possible.snvs.tx_annotated.GTEx.v7.021520.tsv.gz
+
+qsub convert_to_sv_format_for_bedtools.sh
+cat convert_to_sv_format_for_bedtools.sh
+	#!/bin/bash
+	#PBS -P abcd
+	#PBS -q normal
+	#PBS -l walltime=1:00:00
+	#PBS -l mem=40G
+	#PBS -l ncpus=1
+	#PBS -l jobfs=40G
+	#PBS -N convertsv
+	#PBS -lstorage=scratch/abcd+gdata/abcd
+	#PBS -m bea
+	set -euo pipefail
+
+	temp_file3=annovar/humandb/temp_pext/temp_file3.txt
+	temp_file5=annovar/humandb/temp_pext/temp_file5.txt
+	outfile=annovar/humandb/temp_pext/hg19_pext_sv_for_genes.bed
+
+	## This was run in a previous job: Get the header fields
+
+	#echo 'head -n 2' $infile '| tail -n 1 | sed -e' 's/"//g' '| sed -e' 's/}]//g' '| sed -e' 's/\[{//g' '| sed -e' 's/:/\t/g' '| sed -e' 's/,/\t/g' '| awk' 'BEGIN {FS="\t";OFS="\t"} {printf "#Chr" OFS "Start" OFS "End" OFS "Ref" OFS "Alt"; i=5; while (i <= NF) {printf OFS "PEXT_" $i; i=i+2}; printf "\n"}' '>' $tmp_hdr
+	#head -n 2 $infile | tail -n 1 | sed -e 's/"//g' | sed -e 's/}]//g' | sed -e 's/\[{//g' | sed -e 's/:/\t/g' | sed -e 's/,/\t/g' | awk 'BEGIN {FS="\t";OFS="\t"} {printf "#Chr" OFS "Start" OFS "End" OFS "Ref" OFS "Alt"; i=5; while (i <= NF) {printf OFS "PEXT_" $i; i=i+2}; printf "\n"}' > $tmp_hdr
+	#echo ''
+
+	## This was run in a previous job: Split multiple transcripts on an allele line into multiple lines with one transcript per allele line
+
+	#echo 'sed -e' 's/"//g' $infile '| sed -e' 's/\[//g' '| sed -e' 's/\]//g' '| sed -e' 's/},{/|/g' '| sed -e' 's/{//g' '| sed -e' 's/}//g' '| sed -e' 's/},{/}/g' '| awk' 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {n=split($5,a,"|"); for (j=1;j<=n;j++) {printf $1 OFS $2 OFS $3 OFS $4 OFS a[j] "\n"}}}' '| sed -e' 's/:/\t/g' '| sed -e' 's/,/\t/g' '| awk' 'BEGIN {FS="\t";OFS="\t"} {printf $1 OFS $2 OFS $2 OFS $3 OFS $4; i=6; while (i <= NF) {printf OFS $i; i=i+2}; printf "\n"}' '| cat' $tmp_hdr '- >' $temp_file2
+	#sed -e 's/"//g' $infile | sed -e 's/\[//g' | sed -e 's/\]//g' | sed -e 's/},{/|/g' | sed -e 's/{//g' | sed -e 's/}//g' | sed -e 's/},{/}/g' | awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {n=split($5,a,"|"); for (j=1;j<=n;j++) {printf $1 OFS $2 OFS $3 OFS $4 OFS a[j] "\n"}}}' | sed -e 's/:/\t/g' | sed -e 's/,/\t/g' | awk 'BEGIN {FS="\t";OFS="\t"} {printf $1 OFS $2 OFS $2 OFS $3 OFS $4; i=6; while (i <= NF) {printf OFS $i; i=i+2}; printf "\n"}' | cat $tmp_hdr - > $temp_file2
+	#echo ''
+
+	# 17      3716462 3716462 G       A       ENSG00000074356 missense_variant        C17orf85        OS      null    0.1673886138613861      0.17722039473684206     0.19316302150340012     0.2
+	# 17      3716462 3716462 G       A       ENSG00000074356 missense_variant        C17orf85        null    null    0.45235148514851475     0.3953536184210526      0.32420510935489805     0.4
+	# 17      3716462 3716462 G       C       ENSG00000074356 missense_variant        C17orf85        null    null    0.6197400990099009      0.5725740131578947      0.5173681308582981      0.6
+	# 17      3716462 3716462 G       T       ENSG00000074356 missense_variant        C17orf85        null    null    0.6197400990099009      0.5725740131578947      0.5173681308582981      0.6
+
+	## This was run in a previous job: Extract only the heart/cardiac fields
+	# Extract these columns: Artery_Coronary Artery_Aorta Heart_AtrialAppendage Heart_LeftVentricle, and also: ensg csq symbol lof lof_flag mean_proportion
+
+	#echo 'cut -d$''\t' '-f1-10,17,41,42,45,64' $temp_file2 '>' $temp_file3
+	#cut -d$'\t' -f1-10,17,41,42,45,64 $temp_file2 > $temp_file3
+	#echo ''
+
+	## Sort by chrom, then gene. Scores will be accumulated by same gene on same chromosome.
+
+	echo 'sed' 's/^#Chr/0Chr/' $temp_file3 '| sort -k1,1V -k8,8V -k2,2V -k3,3V | awk -f /g/data/jb96/software/annovar/humandb/temp_pext/avg_sv_score_for_gene.awk >' $temp_file5
+	sed 's/^#Chr/0Chr/' $temp_file3 | sort -k1,1V -k8,8V -k2,2V -k3,3V | awk -f /g/data/jb96/software/annovar/humandb/temp_pext/avg_sv_score_for_gene.awk > $temp_file5
+	echo ''
+
+	## Sort by chrom, start, pos, ready to be a bedtools annotation reference file.
+
+	echo 'sed' 's/^#Chr/0Chr/' $temp_file5 '| cut -d$''\t' '-f1-9 | sort -k1,1V -k2,2V -k3,3V -k4,4V | sed' 's/^0Chr/#Chr/' '>' $outfile
+	sed 's/^#Chr/0Chr/' $temp_file5 | cut -d$'\t' -f1-9 | sort -k1,1V -k2,2V -k3,3V -k4,4V | sed 's/^0Chr/#Chr/' > $outfile
+	echo ''
+
+	echo 'Finished!'
+	echo ''
+
+cat avg_sv_score_for_gene.awk
+	# The input will be sorted by chrom, PEXT_symbol (gene)
+	# In this script, scores will be accumulated by same gene on same chromosome.
+	#
+	# input:
+	# #Chr	Start	End	Ref	Alt	PEXT_ensg	PEXT_csq	PEXT_symbol	PEXT_lof	PEXT_lof_flag	PEXT_Artery_Coronary	PEXT_Artery_Aorta	PEXT_Heart_AtrialAppendage	PEXT_Heart_LeftVentricle	PEXT_mean_proportion
+	# 1       861319  861319  C       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861319  861319  C       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861320  861320  T       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861320  861320  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861320  861320  T       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861321  861321  T       A       ENSG00000268179 synonymous_variant      AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861321  861321  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861321  861321  T       G       ENSG00000268179 synonymous_variant      AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       C       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861322  861322  A       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       G       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861322  861322  A       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       T       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861323  861323  T       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861323  861323  T       A       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861323  861323  T       C       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861323  861323  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861323  861323  T       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861323  861323  T       G       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.3711180124223603      0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       A       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       A       ENSG00000268179 synonymous_variant      AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861324  861324  G       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861324  861324  G       C       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       T       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.3711180124223603      0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861325  861325  T       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861325  861325  T       A       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861325  861325  T       C       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861325  861325  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861325  861325  T       G       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861325  861325  T       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861326  861326  C       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861326  861326  C       A       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.3711180124223603      0.3399258343634116      0.0     0.>
+	# 1       861326  861326  C       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861326  861326  C       G       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861326  861326  C       T       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861326  861326  C       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       13840081        13840081        G       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840081        13840081        G       C       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840081        13840081        G       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840082        13840082        G       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840082        13840082        G       C       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840082        13840082        G       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840083        13840083        G       A       ENSG00000162494 synonymous_variant      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840083        13840083        G       C       ENSG00000162494 synonymous_variant      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840083        13840083        G       T       ENSG00000162494 synonymous_variant      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840084        13840084        C       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840084        13840084        C       G       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840084        13840084        C       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840085        13840085        G       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840085        13840085        G       C       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840085        13840085        G       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840086        13840086        C       A       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840086        13840086        C       G       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840086        13840086        C       T       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840087        13840087        A       C       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840087        13840087        A       G       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840087        13840087        A       T       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840088        13840088        T       A       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840088        13840088        T       C       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840088        13840088        T       G       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13910301        13910301        A       C       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910301        13910301        A       G       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910301        13910301        A       T       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910302        13910302        T       A       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910302        13910302        T       C       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910302        13910302        T       G       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910303        13910303        G       A       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910303        13910303        G       C       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910303        13910303        G       T       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+
+	BEGIN {FS="\t";OFS="\t"} 
+	{
+	  if (NR==1) {
+	    print "#Chr", "Start", "End", "PEXT_gene_symbol", "PEXT_gene_avg_Artery_Coronary", "PEXT_gene_avg_Artery_Aorta", "PEXT_gene_avg_Heart_AtrialAppendage", "PEXT_gene_avg_Heart_LeftVentricle", "PEXT_gene_avg_mean_proportion", "PEXT_gene_num_scores_Artery_Coronary", "PEXT_gene_num_scores_Artery_Aorta", "PEXT_gene_num_scores_Heart_AtrialAppendage", "PEXT_gene_num_scores_Heart_LeftVentricle", "PEXT_gene_num_scores_mean_proportion", "PEXT_gene_sum_scores_Artery_Coronary", "PEXT_gene_sum_scores_Artery_Aorta", "PEXT_gene_sum_scores_Heart_AtrialAppendage", "PEXT_gene_sum_scores_Heart_LeftVentricle", "PEXT_gene_sum_scores_mean_proportion"
+	    prev_chr=""
+	    prev_start=0
+	    prev_end=0
+	    prev_symbol=""
+	    num_scores_Artery_Coronary=0
+	    sum_scores_Artery_Coronary=0
+	    num_scores_Artery_Aorta=0
+	    sum_scores_Artery_Aorta=0
+	    num_scores_Heart_AtrialAppendage=0
+	    sum_scores_Heart_AtrialAppendage=0
+	    num_scores_Heart_LeftVentricle=0
+	    sum_scores_Heart_LeftVentricle=0
+	    num_scores_mean_proportion=0
+	    sum_scores_mean_proportion=0
+	  } else {
+	    #if ($11=="NaN") {$11=0}
+	    #if ($12=="NaN") {$12=0}
+	    #if ($13=="NaN") {$13=0}
+	    #if ($14=="NaN") {$14=0}
+	    #if ($15=="NaN") {$15=0}
+	    curr_chr=$1
+	    curr_start=$2
+	    curr_end=$3
+	    curr_symbol=$8
+	    new_gene=0
+	    if ((prev_chr!=curr_chr)||(prev_symbol!=curr_symbol)) {
+	      new_gene=1
+	    }
+	    if (new_gene==1) { # this new line contains a new gene
+	      if (NR>2) { # output the previous gene and its scores
+		avg_Artery_Coronary = 0
+		avg_Artery_Aorta = 0
+		avg_Heart_AtrialAppendage = 0
+		avg_Heart_LeftVentricle = 0
+		avg_mean_proportion = 0
+		if (num_scores_Artery_Coronary!=0) { avg_Artery_Coronary = sum_scores_Artery_Coronary / num_scores_Artery_Coronary }
+		if (num_scores_Artery_Aorta!=0) { avg_Artery_Aorta = sum_scores_Artery_Aorta / num_scores_Artery_Aorta }
+		if (num_scores_Heart_AtrialAppendage!=0) { avg_Heart_AtrialAppendage = sum_scores_Heart_AtrialAppendage / num_scores_Heart_AtrialAppendage }
+		if (num_scores_Heart_LeftVentricle!=0) { avg_Heart_LeftVentricle = sum_scores_Heart_LeftVentricle / num_scores_Heart_LeftVentricle }
+		if (num_scores_mean_proportion!=0) { avg_mean_proportion = sum_scores_mean_proportion / num_scores_mean_proportion }
+		print prev_chr, prev_start, prev_end, prev_symbol, avg_Artery_Coronary, avg_Artery_Aorta, avg_Heart_AtrialAppendage, avg_Heart_LeftVentricle, avg_mean_proportion, num_scores_Artery_Coronary, num_scores_Artery_Aorta, num_scores_Heart_AtrialAppendage, num_scores_Heart_LeftVentricle, num_scores_mean_proportion, sum_scores_Artery_Coronary, sum_scores_Artery_Aorta, sum_scores_Heart_AtrialAppendage, sum_scores_Heart_LeftVentricle, sum_scores_mean_proportion
+	      }
+	      # initialise this new gene
+	      prev_chr=$1
+	      prev_start=$2
+	      prev_end=$3
+	      prev_symbol=$8
+	      num_scores_Artery_Coronary=0
+	      sum_scores_Artery_Coronary=0
+	      num_scores_Artery_Aorta=0
+	      sum_scores_Artery_Aorta=0
+	      num_scores_Heart_AtrialAppendage=0
+	      sum_scores_Heart_AtrialAppendage=0
+	      num_scores_Heart_LeftVentricle=0
+	      sum_scores_Heart_LeftVentricle=0
+	      num_scores_mean_proportion=0
+	      sum_scores_mean_proportion=0
+	      if ($11!="NaN") {
+		num_scores_Artery_Coronary=1
+		sum_scores_Artery_Coronary=$11
+	      }
+	      if ($12!="NaN") {
+		num_scores_Artery_Aorta=1
+		sum_scores_Artery_Aorta=$12
+	      }
+	      if ($13!="NaN") {
+		num_scores_Heart_AtrialAppendage=1
+		sum_scores_Heart_AtrialAppendage=$13
+	      }
+	      if ($14!="NaN") {
+		num_scores_Heart_LeftVentricle=1
+		sum_scores_Heart_LeftVentricle=$14
+	      }
+	      if ($15!="NaN") {
+		num_scores_mean_proportion=1
+		sum_scores_mean_proportion=$15
+	      }
+	    } else { # this new line contains the same gene as the previous line
+	      # update the scores for this gene
+	      prev_end=$3
+	      num_scores_Artery_Coronary=num_scores_Artery_Coronary+1
+	      num_scores_Artery_Aorta=num_scores_Artery_Aorta+1
+	      num_scores_Heart_AtrialAppendage=num_scores_Heart_AtrialAppendage+1
+	      num_scores_Heart_LeftVentricle=num_scores_Heart_LeftVentricle+1
+	      num_scores_mean_proportion=num_scores_mean_proportion+1
+	      sum_scores_Artery_Coronary=sum_scores_Artery_Coronary+$11
+	      sum_scores_Artery_Aorta=sum_scores_Artery_Aorta+$12
+	      sum_scores_Heart_AtrialAppendage=sum_scores_Heart_AtrialAppendage+$13
+	      sum_scores_Heart_LeftVentricle=sum_scores_Heart_LeftVentricle+$14
+	      sum_scores_mean_proportion=sum_scores_mean_proportion+$15
+	    }
+	  }
+	}
+	END {
+	  # print out the last previous line(s) values
+	  if (NR>2) { # output the previous gene and its scores
+	    avg_Artery_Coronary = 0
+	    avg_Artery_Aorta = 0
+	    avg_Heart_AtrialAppendage = 0
+	    avg_Heart_LeftVentricle = 0
+	    avg_mean_proportion = 0
+	    if (num_scores_Artery_Coronary!=0) { avg_Artery_Coronary = sum_scores_Artery_Coronary / num_scores_Artery_Coronary }
+	    if (num_scores_Artery_Aorta!=0) { avg_Artery_Aorta = sum_scores_Artery_Aorta / num_scores_Artery_Aorta }
+	    if (num_scores_Heart_AtrialAppendage!=0) { avg_Heart_AtrialAppendage = sum_scores_Heart_AtrialAppendage / num_scores_Heart_AtrialAppendage }
+	    if (num_scores_Heart_LeftVentricle!=0) { avg_Heart_LeftVentricle = sum_scores_Heart_LeftVentricle / num_scores_Heart_LeftVentricle }
+	    if (num_scores_mean_proportion!=0) { avg_mean_proportion = sum_scores_mean_proportion / num_scores_mean_proportion }
+	    print prev_chr, prev_start, prev_end, prev_symbol, avg_Artery_Coronary, avg_Artery_Aorta, avg_Heart_AtrialAppendage, avg_Heart_LeftVentricle, avg_mean_proportion, num_scores_Artery_Coronary, num_scores_Artery_Aorta, num_scores_Heart_AtrialAppendage, num_scores_Heart_LeftVentricle, num_scores_mean_proportion, sum_scores_Artery_Coronary, sum_scores_Artery_Aorta, sum_scores_Heart_AtrialAppendage, sum_scores_Heart_LeftVentricle, sum_scores_mean_proportion
+	  }
+	}
+
+########## Convert the hg19 pext bedtools data to hg38
+
+qsub convert_hg19_to_hg38_sv.sh
+cat convert_hg19_to_hg38_sv.sh
+	#!/bin/bash
+	#PBS -P abcd
+	#PBS -q normal
+	#PBS -l walltime=10:00:00
+	#PBS -l mem=60G
+	#PBS -l ncpus=1
+	#PBS -l jobfs=60G
+	#PBS -N liftover
+	#PBS -lstorage=scratch/abcd+gdata/abcd
+	#PBS -m bea
+	set -euo pipefail
+
+	infile=annovar/humandb/temp_pext/hg19_pext_sv_for_genes.bed
+	outfile=annovar/humandb/temp_pext/hg38_pext_sv_for_genes.bed
+	tmpdir=annovar/humandb/temp_pext
+
+	module load java/jdk-8.40
+	module load htslib/1.9
+	module load bedtools/2.28.0
+	module load R/3.6.1
+	module load intel-compiler/2019.3.199
+	export R_LIBS_USER=victorchang_scripts/R_libraries_for_victorchang_scripts
+
+	export liftover_chain=liftover/hg19ToHg38.over.chain.gz
+
+	tmp_infile_for_liftover="${tmpdir}"/tmp_infile_for_liftover.txt
+	tmp_liftover_outfile="${tmpdir}"/tmp_liftover_outfile.txt
+	tmp_liftover_rejected_outfile="${tmpdir}"/tmp_liftover_rejected_outfile.txt
+	tmp_hdr="${tmpdir}"/tmp_hdr.txt
+
+	# head $infile
+	# #Chr	Start	End	Ref	Alt	PEXT_ensg	PEXT_csq	PEXT_symbol	PEXT_lof	PEXT_lof_flag	PEXT_Artery_Coronary	PEXT_Artery_Aorta	PEXT_Heart_AtrialAppendage	PEXT_Heart_LeftVentricle	PEXT_mean_proportion
+	# 1       69091   69091   A       C       ENSG00000186092 start_lost      OR4F5   null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       69091   69091   A       G       ENSG00000186092 start_lost      OR4F5   null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       69091   69091   A       T       ENSG00000186092 start_lost      OR4F5   null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       69092   69092   T       A       ENSG00000186092 start_lost      OR4F5   null    null    NaN     NaN     NaN     NaN     NaN
+	# ...
+	# 1       887924  887924  G       T       ENSG00000188976 synonymous_variant      NOC2L   null    null    0.7623793210837746      0.7813705132008306      0.7596382674916707      0.7592487194080819      0.7314522329289305
+	# 1       887925  887925  G       A       ENSG00000188976 missense_variant        NOC2L   null    null    0.7623793210837746      0.7813705132008306      0.7596382674916707      0.7592487194080819      0.7314522329289305
+	# 1       887925  887925  G       C       ENSG00000188976 missense_variant        NOC2L   null    null    0.7623793210837746      0.7813705132008306      0.7596382674916707      0.7592487194080819      0.7314522329289305
+	# 1       887925  887925  G       T       ENSG00000188976 missense_variant        NOC2L   null    null    0.7623793210837746      0.7813705132008306      0.7596382674916707      0.7592487194080819      0.7314522329289305
+
+	echo 'awk' 'BEGIN {FS="\t";OFS="\t"} {if (NR==1) {print "#Chr", "Start", "End", "info"} else {print "chr" $1, $2, $3+1, $4 ";" $5 ";" $6 ";" $7 ";" $8 ";" $9}}' $infile '>' $tmp_infile_for_liftover
+	awk 'BEGIN {FS="\t";OFS="\t"} {if (NR==1) {print "#Chr", "Start", "End", "info"} else {print "chr" $1, $2, $3+1, $4 ";" $5 ";" $6 ";" $7 ";" $8 ";" $9}}' $infile > $tmp_infile_for_liftover
+	echo ''
+
+	echo 'liftOver' $tmp_infile_for_liftover 'liftover/hg19ToHg38.over.chain.gz' $tmp_liftover_outfile $tmp_liftover_rejected_outfile
+	liftOver $tmp_infile_for_liftover liftover/hg19ToHg38.over.chain.gz $tmp_liftover_outfile $tmp_liftover_rejected_outfile
+	echo ''
+
+	# head $tmp_liftover_outfile
+	# chr1	69093	69094	G;T;ENSG00000186092;start_lost;OR4F5;null;null;NaN;NaN;NaN;NaN;NaN
+	# chr1	69094	69095	G;A;ENSG00000186092;missense_variant;OR4F5;null;null;NaN;NaN;NaN;NaN;NaN
+	# chr1	69094	69095	G;C;ENSG00000186092;missense_variant;OR4F5;null;null;NaN;NaN;NaN;NaN;NaN
+	# chr1	69094	69095	G;T;ENSG00000186092;missense_variant;OR4F5;null;null;NaN;NaN;NaN;NaN;NaN
+	# chr1	1244439	1244440	A;C;ENSG00000184163;missense_variant;FAM132A;null;null;0.1810344827586207;0.14225941422594146;0.23636363636363636;0.24390243902439024;0.18052903698444328
+	# chr1	1244439	1244440	A;G;ENSG00000184163;missense_variant;FAM132A;null;null;0.1810344827586207;0.14225941422594146;0.23636363636363636;0.24390243902439024;0.18052903698444328
+	# chr1	1244439	1244440	A;T;ENSG00000184163;missense_variant;FAM132A;null;null;0.1810344827586207;0.14225941422594146;0.23636363636363636;0.24390243902439024;0.18052903698444328
+	# chr1	1244440	1244441	C;A;ENSG00000184163;missense_variant;FAM132A;null;null;0.1810344827586207;0.14225941422594146;0.23636363636363636;0.24390243902439024;0.18052903698444328
+
+	echo 'head -n 1' $infile '>' $tmp_hdr
+	head -n 1 $infile > $tmp_hdr
+	echo ''
+
+	echo 'awk' 'BEGIN {FS=";";OFS="\t"} {print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12}' $tmp_liftover_outfile '| awk' 'BEGIN {FS="\t";OFS="\t"} {print $1, $2, $3-1, $4, $5, $6, $7, $8, $9}' '| cat' $tmp_hdr - > $outfile
+	awk 'BEGIN {FS=";";OFS="\t"} {print $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12}' $tmp_liftover_outfile | awk 'BEGIN {FS="\t";OFS="\t"} {print $1, $2, $3-1, $4, $5, $6, $7, $8, $9}' | cat $tmp_hdr - > $outfile
+	echo ''
+
+	echo ''
+	echo 'outfile:' $outfile
+	echo ''
+
+########## Convert hg19 pext data to the format of a bedtools reference file to be used by bedtools annotation, with tissue scores per gene specified by gene exon regions
+
+cd annovar/humandb/temp_pext
+
+qsub convert_to_sv_format_for_bedtools_2a.sh
+qsub convert_to_sv_format_for_bedtools_2b.sh # col=11
+qsub convert_to_sv_format_for_bedtools_2b.sh # col=12
+qsub convert_to_sv_format_for_bedtools_2b.sh # col=13
+qsub convert_to_sv_format_for_bedtools_2b.sh # col=14
+
+cat convert_to_sv_format_for_bedtools_2a.sh
+	#!/bin/bash
+	#PBS -P abcd
+	#PBS -q normal
+	#PBS -l walltime=6:00:00
+	#PBS -l mem=40G
+	#PBS -l ncpus=1
+	#PBS -l jobfs=40G
+	#PBS -N convertsv
+	#PBS -lstorage=scratch/abcd+gdata/abcd
+	#PBS -m bea
+	set -euo pipefail
+
+	temp_file3=annovar/humandb/temp_pext/temp_file3.txt
+	temp_file5=annovar/humandb/temp_pext/temp_file5.txt
+	temp_file6=annovar/humandb/temp_pext/temp_file6.txt
+
+	## This was run in a previous job: Get the header fields
+
+	#echo 'head -n 2' $infile '| tail -n 1 | sed -e' 's/"//g' '| sed -e' 's/}]//g' '| sed -e' 's/\[{//g' '| sed -e' 's/:/\t/g' '| sed -e' 's/,/\t/g' '| awk' 'BEGIN {FS="\t";OFS="\t"} {printf "#Chr" OFS "Start" OFS "End" OFS "Ref" OFS "Alt"; i=5; while (i <= NF) {printf OFS "PEXT_" $i; i=i+2}; printf "\n"}' '>' $tmp_hdr
+	#head -n 2 $infile | tail -n 1 | sed -e 's/"//g' | sed -e 's/}]//g' | sed -e 's/\[{//g' | sed -e 's/:/\t/g' | sed -e 's/,/\t/g' | awk 'BEGIN {FS="\t";OFS="\t"} {printf "#Chr" OFS "Start" OFS "End" OFS "Ref" OFS "Alt"; i=5; while (i <= NF) {printf OFS "PEXT_" $i; i=i+2}; printf "\n"}' > $tmp_hdr
+	#echo ''
+
+	## This was run in a previous job: Split multiple transcripts on an allele line into multiple lines with one transcript per allele line
+
+	#echo 'sed -e' 's/"//g' $infile '| sed -e' 's/\[//g' '| sed -e' 's/\]//g' '| sed -e' 's/},{/|/g' '| sed -e' 's/{//g' '| sed -e' 's/}//g' '| sed -e' 's/},{/}/g' '| awk' 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {n=split($5,a,"|"); for (j=1;j<=n;j++) {printf $1 OFS $2 OFS $3 OFS $4 OFS a[j] "\n"}}}' '| sed -e' 's/:/\t/g' '| sed -e' 's/,/\t/g' '| awk' 'BEGIN {FS="\t";OFS="\t"} {printf $1 OFS $2 OFS $2 OFS $3 OFS $4; i=6; while (i <= NF) {printf OFS $i; i=i+2}; printf "\n"}' '| cat' $tmp_hdr '- >' $temp_file2
+	#sed -e 's/"//g' $infile | sed -e 's/\[//g' | sed -e 's/\]//g' | sed -e 's/},{/|/g' | sed -e 's/{//g' | sed -e 's/}//g' | sed -e 's/},{/}/g' | awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {n=split($5,a,"|"); for (j=1;j<=n;j++) {printf $1 OFS $2 OFS $3 OFS $4 OFS a[j] "\n"}}}' | sed -e 's/:/\t/g' | sed -e 's/,/\t/g' | awk 'BEGIN {FS="\t";OFS="\t"} {printf $1 OFS $2 OFS $2 OFS $3 OFS $4; i=6; while (i <= NF) {printf OFS $i; i=i+2}; printf "\n"}' | cat $tmp_hdr - > $temp_file2
+	#echo ''
+
+	# 17      3716462 3716462 G       A       ENSG00000074356 missense_variant        C17orf85        OS      null    0.1673886138613861      0.17722039473684206     0.19316302150340012     0.2
+	# 17      3716462 3716462 G       A       ENSG00000074356 missense_variant        C17orf85        null    null    0.45235148514851475     0.3953536184210526      0.32420510935489805     0.4
+	# 17      3716462 3716462 G       C       ENSG00000074356 missense_variant        C17orf85        null    null    0.6197400990099009      0.5725740131578947      0.5173681308582981      0.6
+	# 17      3716462 3716462 G       T       ENSG00000074356 missense_variant        C17orf85        null    null    0.6197400990099009      0.5725740131578947      0.5173681308582981      0.6
+
+	## This was run in a previous job: Extract only the heart/cardiac fields
+	# Extract these columns: Artery_Coronary Artery_Aorta Heart_AtrialAppendage Heart_LeftVentricle, and also: ensg csq symbol lof lof_flag mean_proportion
+
+	#echo 'cut -d$''\t' '-f1-10,17,41,42,45,64' $temp_file2 '>' $temp_file3
+	#cut -d$'\t' -f1-10,17,41,42,45,64 $temp_file2 > $temp_file3
+	#echo ''
+
+	## Sort by chrom, PEXT_symbol (gene), Start, Alt.
+	## Thus, all the locii for an exon will be grouped together, from lowest to highest start position.
+
+	echo 'sed' 's/^#Chr/0Chr/' $temp_file3 '| sort -k1,1V -k8,8V -k2,2V -k3,3V >' $temp_file6
+	sed 's/^#Chr/0Chr/' $temp_file3 | sort -k1,1V -k8,8V -k2,2V -k3,3V > $temp_file6
+	echo ''
+
+	echo 'Finished!'
+	echo ''
+
+cat convert_to_sv_format_for_bedtools_2b.sh
+	#!/bin/bash
+	#PBS -P abcd
+	#PBS -q normal
+	#PBS -l walltime=6:00:00
+	#PBS -l mem=40G
+	#PBS -l ncpus=1
+	#PBS -l jobfs=40G
+	#PBS -N sv14convert
+	#PBS -lstorage=scratch/abcd+gdata/abcd
+	#PBS -m bea
+	set -euo pipefail
+
+	col=14
+
+	temp_file3=annovar/humandb/temp_pext/temp_file3.txt
+	temp_file5=annovar/humandb/temp_pext/temp_file5.txt
+	temp_file6=annovar/humandb/temp_pext/temp_file6.txt
+	temp_file6_for_col=annovar/humandb/temp_pext/temp_file6_"${col}".txt
+	temp_file7_fol_col=annovar/humandb/temp_pext/temp_file7_"${col}".txt
+	outfile[11]=annovar/humandb/temp_pext/hg19_pext_sv_for_exons_of_Artery_Coronary.bed
+	outfile[12]=annovar/humandb/temp_pext/hg19_pext_sv_for_exons_of_Artery_Aorta.bed
+	outfile[13]=annovar/humandb/temp_pext/hg19_pext_sv_for_exons_of_Heart_AtrialAppendage.bed
+	outfile[14]=annovar/humandb/temp_pext/hg19_pext_sv_for_exons_of_Heart_LeftVentricle.bed
+	outfile="${outfile[$col]}"
+
+	## This was run in a previous job: Get the header fields
+
+	#echo 'head -n 2' $infile '| tail -n 1 | sed -e' 's/"//g' '| sed -e' 's/}]//g' '| sed -e' 's/\[{//g' '| sed -e' 's/:/\t/g' '| sed -e' 's/,/\t/g' '| awk' 'BEGIN {FS="\t";OFS="\t"} {printf "#Chr" OFS "Start" OFS "End" OFS "Ref" OFS "Alt"; i=5; while (i <= NF) {printf OFS "PEXT_" $i; i=i+2}; printf "\n"}' '>' $tmp_hdr
+	#head -n 2 $infile | tail -n 1 | sed -e 's/"//g' | sed -e 's/}]//g' | sed -e 's/\[{//g' | sed -e 's/:/\t/g' | sed -e 's/,/\t/g' | awk 'BEGIN {FS="\t";OFS="\t"} {printf "#Chr" OFS "Start" OFS "End" OFS "Ref" OFS "Alt"; i=5; while (i <= NF) {printf OFS "PEXT_" $i; i=i+2}; printf "\n"}' > $tmp_hdr
+	#echo ''
+
+	## This was run in a previous job: Split multiple transcripts on an allele line into multiple lines with one transcript per allele line
+
+	#echo 'sed -e' 's/"//g' $infile '| sed -e' 's/\[//g' '| sed -e' 's/\]//g' '| sed -e' 's/},{/|/g' '| sed -e' 's/{//g' '| sed -e' 's/}//g' '| sed -e' 's/},{/}/g' '| awk' 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {n=split($5,a,"|"); for (j=1;j<=n;j++) {printf $1 OFS $2 OFS $3 OFS $4 OFS a[j] "\n"}}}' '| sed -e' 's/:/\t/g' '| sed -e' 's/,/\t/g' '| awk' 'BEGIN {FS="\t";OFS="\t"} {printf $1 OFS $2 OFS $2 OFS $3 OFS $4; i=6; while (i <= NF) {printf OFS $i; i=i+2}; printf "\n"}' '| cat' $tmp_hdr '- >' $temp_file2
+	#sed -e 's/"//g' $infile | sed -e 's/\[//g' | sed -e 's/\]//g' | sed -e 's/},{/|/g' | sed -e 's/{//g' | sed -e 's/}//g' | sed -e 's/},{/}/g' | awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {n=split($5,a,"|"); for (j=1;j<=n;j++) {printf $1 OFS $2 OFS $3 OFS $4 OFS a[j] "\n"}}}' | sed -e 's/:/\t/g' | sed -e 's/,/\t/g' | awk 'BEGIN {FS="\t";OFS="\t"} {printf $1 OFS $2 OFS $2 OFS $3 OFS $4; i=6; while (i <= NF) {printf OFS $i; i=i+2}; printf "\n"}' | cat $tmp_hdr - > $temp_file2
+	#echo ''
+
+	# 17      3716462 3716462 G       A       ENSG00000074356 missense_variant        C17orf85        OS      null    0.1673886138613861      0.17722039473684206     0.19316302150340012     0.2
+	# 17      3716462 3716462 G       A       ENSG00000074356 missense_variant        C17orf85        null    null    0.45235148514851475     0.3953536184210526      0.32420510935489805     0.4
+	# 17      3716462 3716462 G       C       ENSG00000074356 missense_variant        C17orf85        null    null    0.6197400990099009      0.5725740131578947      0.5173681308582981      0.6
+	# 17      3716462 3716462 G       T       ENSG00000074356 missense_variant        C17orf85        null    null    0.6197400990099009      0.5725740131578947      0.5173681308582981      0.6
+
+	## This was run in a previous job: Extract only the heart/cardiac fields
+	# Extract these columns: Artery_Coronary Artery_Aorta Heart_AtrialAppendage Heart_LeftVentricle, and also: ensg csq symbol lof lof_flag mean_proportion
+
+	#echo 'cut -d$''\t' '-f1-10,17,41,42,45,64' $temp_file2 '>' $temp_file3
+	#cut -d$'\t' -f1-10,17,41,42,45,64 $temp_file2 > $temp_file3
+	#echo ''
+
+	## This was run in a previous job: Sort by chrom, PEXT_symbol (gene), Start, Alt.
+	## Thus, all the locii for an exon will be grouped together, from lowest to highest start position.
+
+	#echo 'sed' 's/^#Chr/0Chr/' $temp_file3 '| sort -k1,1V -k8,8V -k2,2V -k3,3V >' $temp_file6
+	#sed 's/^#Chr/0Chr/' $temp_file3 | sort -k1,1V -k8,8V -k2,2V -k3,3V > $temp_file6
+	#echo ''
+
+	## Get the highest score for this column per position
+
+	echo 'awk -v col='"$col" '-f annovar/humandb/temp_pext/get_max_col_score.awk' $temp_file6 '>' $temp_file6_for_col
+	awk -v col="$col" -f annovar/humandb/temp_pext/get_max_col_score.awk $temp_file6 > $temp_file6_for_col
+	echo ''
+
+	## Accumlate scores by gene exon.
+
+	echo 'awk -f annovar/humandb/temp_pext/avg_sv_score_for_exon_part1.awk' $temp_file6_for_col '>' $temp_file7_for_col
+	awk -f annovar/humandb/temp_pext/avg_sv_score_for_exon_part1.awk $temp_file6_for_col > $temp_file7_for_col
+	echo ''
+
+	## Sort by chrom, start, pos, ready to be a bedtools annotation reference file.
+
+	echo 'sed' 's/^#Chr/0Chr/' $temp_file7_for_col '| cut -d$''\t' '-f1-9 | sort -k1,1V -k2,2V -k3,3V -k4,4V | sed' 's/^0Chr/#Chr/' '>' $outfile
+	sed 's/^#Chr/0Chr/' $temp_file7_for_col | cut -d$'\t' -f1-9 | sort -k1,1V -k2,2V -k3,3V -k4,4V | sed 's/^0Chr/#Chr/' > $outfile
+	echo ''
+
+	echo 'Finished!'
+	echo ''
+
+cat get_max_col_score.awk
+	# awk -v col=11 -f get_max_col_score.awk my_input.txt > my_output_11.txt # get max score per nucleotide for PEXT_Artery_Coronary, output goes to col 11
+	# awk -v col=12 -f get_max_col_score.awk my_input.txt > my_output_12.txt # get max score per nucleotide for PEXT_Artery_Aorta, output goes to col 11
+	# awk -v col=13 -f get_max_col_score.awk my_input.txt > my_output_13.txt # get max score per nucleotide for PEXT_Heart_AtrialAppendage, output goes to col 11
+	# awk -v col=14 -f get_max_col_score.awk my_input.txt > my_output_14.txt # get max score per nucleotide for PEXT_Heart_LeftVentricle, output goes to col 11
+
+	# The input will be already sorted by chrom, PEXT_symbol (gene), Start, Alt.
+	# Thus, all the locii for an exon will be grouped together, from lowest to highest start position.
+	# An exon is a grouping of same chrom and PEXT_symbol, and the preceding and subsequent rows do not have the same chrom and/or PEXT_symbol.
+	# In this script, one of the scores (Artery_Coronary, Artery_Aorta, Heart_AtrialAppendage, or Heart_LeftVentricle, determined by input variable col) will be accumulated by gene.
+	# The gene name and the score information will be output. The score information is avg (= sum_scores / num_scores), num_scores, and sum_scores.
+	# Multiple lines will be output for each gene and its scores - one for each apparent exon region. For a given gene, its output score entries may be similar but not necessarily the same.
+	# In the next part2 program, the scores will be averaged per gene, so that the multiple exon rows for a gene will all have the same score.
+	# When that output file of exon regions is used for annotation of structural variants, the one score per gene will end up in the annotation column, even if the structural variant spans multiple columns.
+	#
+	# input:
+	# #Chr	Start	End	Ref	Alt	PEXT_ensg	PEXT_csq	PEXT_symbol	PEXT_lof	PEXT_lof_flag	PEXT_Artery_Coronary	PEXT_Artery_Aorta	PEXT_Heart_AtrialAppendage	PEXT_Heart_LeftVentricle	PEXT_mean_proportion
+	# 1       861319  861319  C       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861319  861319  C       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861320  861320  T       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861320  861320  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861320  861320  T       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861321  861321  T       A       ENSG00000268179 synonymous_variant      AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861321  861321  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861321  861321  T       G       ENSG00000268179 synonymous_variant      AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       C       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861322  861322  A       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       G       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861322  861322  A       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       T       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861323  861323  T       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861323  861323  T       A       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861323  861323  T       C       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861323  861323  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861323  861323  T       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861323  861323  T       G       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.3711180124223603      0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       A       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       A       ENSG00000268179 synonymous_variant      AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861324  861324  G       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861324  861324  G       C       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       T       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.3711180124223603      0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861325  861325  T       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861325  861325  T       A       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861325  861325  T       C       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861325  861325  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861325  861325  T       G       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861325  861325  T       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861326  861326  C       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861326  861326  C       A       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.3711180124223603      0.3399258343634116      0.0     0.>
+	# 1       861326  861326  C       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861326  861326  C       G       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861326  861326  C       T       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861326  861326  C       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       985935  985935  T       A       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985935  985935  T       C       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985935  985935  T       G       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985936  985936  C       A       ENSG00000188157 coding_sequence_variant AGRN    null    null    0.0     0.0     0.06881243063263043     0.058571428571428566    0.04>
+	# 1       985936  985936  C       A       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985936  985936  C       G       ENSG00000188157 coding_sequence_variant AGRN    null    null    0.0     0.0     0.06881243063263043     0.058571428571428566    0.04>
+	# 1       985936  985936  C       G       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985936  985936  C       T       ENSG00000188157 coding_sequence_variant AGRN    null    null    0.0     0.0     0.06881243063263043     0.058571428571428566    0.04>
+	# 1       985936  985936  C       T       ENSG00000188157 synonymous_variant      AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985937  985937  C       A       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.5238623751387348  >
+	# 1       985937  985937  C       G       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.5238623751387348  >
+	# 1       985937  985937  C       T       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.5238623751387348  >
+	# 1       13840081        13840081        G       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840081        13840081        G       C       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840081        13840081        G       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840082        13840082        G       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840082        13840082        G       C       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840082        13840082        G       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840083        13840083        G       A       ENSG00000162494 synonymous_variant      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840083        13840083        G       C       ENSG00000162494 synonymous_variant      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840083        13840083        G       T       ENSG00000162494 synonymous_variant      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840084        13840084        C       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840084        13840084        C       G       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840084        13840084        C       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840085        13840085        G       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840085        13840085        G       C       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840085        13840085        G       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840086        13840086        C       A       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840086        13840086        C       G       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840086        13840086        C       T       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840087        13840087        A       C       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840087        13840087        A       G       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840087        13840087        A       T       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840088        13840088        T       A       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840088        13840088        T       C       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840088        13840088        T       G       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13910301        13910301        A       C       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910301        13910301        A       G       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910301        13910301        A       T       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910302        13910302        T       A       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910302        13910302        T       C       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910302        13910302        T       G       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910303        13910303        G       A       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910303        13910303        G       C       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910303        13910303        G       T       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+
+	BEGIN {FS="\t";OFS="\t"} 
+	{
+	  if (NR==1) { # header line
+	    printf $1
+	    for (i=2;i<=10;++i) {printf OFS $i}
+	    printf OFS $col "\n"
+	    prev_chr=""
+	    prev_start=0
+	    prev_end=0
+	    prev_ref=0
+	    prev_alt=0
+	    prev_ensg="."
+	    prev_csq="."
+	    prev_symbol="."
+	    prev_lof="."
+	    prev_lof_flag="."
+	    highest_score=0
+	  } else { # data line
+	    curr_chr=$1
+	    curr_start=$2
+	    curr_score=$col
+	    if (curr_score=="NaN") { curr_score=0 }
+	    curr_is_same_position_as_prev=0
+	    if ((prev_chr==curr_chr)&&(prev_start==curr_start)) {
+	      curr_is_same_position_as_prev=1
+	    }
+	    if (curr_is_same_position_as_prev==1) {
+	      if (curr_score > highest_score) {
+		highest_score = curr_score
+	      }
+	    } else { # current position is not the same as the previous position
+		# print out the score of the previous position
+		if (prev_chr != "") {
+		  print prev_chr, prev_start, prev_end, prev_ref, prev_alt, prev_ensg, prev_csq, prev_symbol, prev_lof, prev_lof_flag, highest_score
+		}
+		# start finding the highest score of the current position
+		highest_score = curr_score
+	    }
+	    prev_chr=$1
+	    prev_start=$2
+	    prev_end=$3
+	    prev_ref=$4
+	    prev_alt=$5
+	    prev_ensg=$6
+	    prev_csq=$7
+	    prev_symbol=$8
+	    prev_lof=$9
+	    prev_lof_flag=$10
+	  }
+	}
+	END {
+	  # print out the score of the previous position
+	  if (prev_chr != "") {
+	    print prev_chr, prev_start, prev_end, prev_ref, prev_alt, prev_ensg, prev_csq, prev_symbol, prev_lof, prev_lof_flag, highest_score
+	  }
+	}
+
+cat avg_sv_score_for_exon_part1.awk
+	# awk -f avg_sv_score_for_exon_part1.awk my_input.txt > my_output.txt # get the average score in each gene for PEXT_Artery_Coronary
+	# awk -f avg_sv_score_for_exon_part1.awk my_input.txt > my_output.txt # get the average score in each gene for PEXT_Artery_Aorta
+	# awk -f avg_sv_score_for_exon_part1.awk my_input.txt > my_output.txt # get the average score in each gene for PEXT_Heart_AtrialAppendage
+	# awk -f avg_sv_score_for_exon_part1.awk my_input.txt > my_output.txt # get the average score in each gene for PEXT_Heart_LeftVentricle
+
+	# The input will be already sorted by chrom, PEXT_symbol (gene), Start, Alt.
+	# Thus, all the locii for an exon will be grouped together, from lowest to highest start position.
+	# An exon is a grouping of same chrom and PEXT_symbol, and the preceding and subsequent rows do not have the same chrom and/or PEXT_symbol.
+	# In this script, one of the scores (Artery_Coronary, Artery_Aorta, Heart_AtrialAppendage, or Heart_LeftVentricle, determined by input variable col) will be accumulated by gene.
+	# The gene name and the score information will be output. The score information is avg (= sum_scores / num_scores), num_scores, and sum_scores.
+	# Multiple lines will be output for each gene and its scores - one for each apparent exon region. For a given gene, its output score entries may be similar but not necessarily the same.
+	# In the next part2 program, the scores will be averaged per gene, so that the multiple exon rows for a gene will all have the same score.
+	# When that output file of exon regions is used for annotation of structural variants, the one score per gene will end up in the annotation column, even if the structural variant spans multiple columns.
+	#
+	# input:
+	# #Chr	Start	End	Ref	Alt	PEXT_ensg	PEXT_csq	PEXT_symbol	PEXT_lof	PEXT_lof_flag	PEXT_Artery_Coronary	PEXT_Artery_Aorta	PEXT_Heart_AtrialAppendage	PEXT_Heart_LeftVentricle	PEXT_mean_proportion
+	# 1       861319  861319  C       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861319  861319  C       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861320  861320  T       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861320  861320  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861320  861320  T       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861321  861321  T       A       ENSG00000268179 synonymous_variant      AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861321  861321  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861321  861321  T       G       ENSG00000268179 synonymous_variant      AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       C       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861322  861322  A       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       G       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861322  861322  A       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861322  861322  A       T       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861323  861323  T       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861323  861323  T       A       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861323  861323  T       C       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861323  861323  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861323  861323  T       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861323  861323  T       G       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.3711180124223603      0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       A       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       A       ENSG00000268179 synonymous_variant      AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861324  861324  G       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861324  861324  G       C       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       T       ENSG00000187634 start_lost      SAMD11  null    null    0.260989010989011       0.3711180124223603      0.3399258343634116      0.0     0.16993440>
+	# 1       861324  861324  G       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861325  861325  T       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861325  861325  T       A       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861325  861325  T       C       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861325  861325  T       C       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861325  861325  T       G       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861325  861325  T       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861326  861326  C       A       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861326  861326  C       A       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.3711180124223603      0.3399258343634116      0.0     0.>
+	# 1       861326  861326  C       G       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       861326  861326  C       G       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861326  861326  C       T       ENSG00000187634 missense_variant        SAMD11  null    null    0.260989010989011       0.37111801242236025     0.3399258343634116      0.0     0.>
+	# 1       861326  861326  C       T       ENSG00000268179 missense_variant        AL645608.1      null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       985935  985935  T       A       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985935  985935  T       C       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985935  985935  T       G       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985936  985936  C       A       ENSG00000188157 coding_sequence_variant AGRN    null    null    0.0     0.0     0.06881243063263043     0.058571428571428566    0.04>
+	# 1       985936  985936  C       A       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985936  985936  C       G       ENSG00000188157 coding_sequence_variant AGRN    null    null    0.0     0.0     0.06881243063263043     0.058571428571428566    0.04>
+	# 1       985936  985936  C       G       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985936  985936  C       T       ENSG00000188157 coding_sequence_variant AGRN    null    null    0.0     0.0     0.06881243063263043     0.058571428571428566    0.04>
+	# 1       985936  985936  C       T       ENSG00000188157 synonymous_variant      AGRN    null    null    0.6288770053475936      0.676687464549064       0.45504994450610436 >
+	# 1       985937  985937  C       A       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.5238623751387348  >
+	# 1       985937  985937  C       G       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.5238623751387348  >
+	# 1       985937  985937  C       T       ENSG00000188157 missense_variant        AGRN    null    null    0.6288770053475936      0.676687464549064       0.5238623751387348  >
+	# 1       13840081        13840081        G       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840081        13840081        G       C       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840081        13840081        G       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840082        13840082        G       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840082        13840082        G       C       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840082        13840082        G       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840083        13840083        G       A       ENSG00000162494 synonymous_variant      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840083        13840083        G       C       ENSG00000162494 synonymous_variant      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840083        13840083        G       T       ENSG00000162494 synonymous_variant      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840084        13840084        C       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840084        13840084        C       G       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840084        13840084        C       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840085        13840085        G       A       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840085        13840085        G       C       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840085        13840085        G       T       ENSG00000162494 missense_variant        LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840086        13840086        C       A       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840086        13840086        C       G       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840086        13840086        C       T       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840087        13840087        A       C       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840087        13840087        A       G       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840087        13840087        A       T       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840088        13840088        T       A       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840088        13840088        T       C       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13840088        13840088        T       G       ENSG00000162494 start_lost      LRRC38  null    null    1.0     1.0     1.0     1.0     1.0
+	# 1       13910301        13910301        A       C       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910301        13910301        A       G       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910301        13910301        A       T       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910302        13910302        T       A       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910302        13910302        T       C       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910302        13910302        T       G       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910303        13910303        G       A       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910303        13910303        G       C       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+	# 1       13910303        13910303        G       T       ENSG00000162493 start_lost      PDPN    null    null    0.4854545454545454      0.5000000000000001      0.31901840490797545     0.>
+
+	BEGIN {FS="\t";OFS="\t"} 
+	{
+	  if (NR==1) { # header line
+	    this_hdr1=$11"_exon_symbol" # eg. PEXT_Artery_Aorta ==> PEXT_Artery_Aorta_exon_symbol
+	    this_hdr2=$11"_exon_avg_score" # eg. PEXT_Artery_Aorta ==> PEXT_Artery_Aorta_exon_avg_score
+	    print "#Chr", "Start", "End", this_hdr1, this_hdr2
+	    prev_chr=""
+	    prev_start=0
+	    prev_end=0
+	    prev_symbol=""
+	    prev_score="NaN"
+	    currently_in_a_gene_exon=0
+	    lowest_start=0
+	    num_scores_for_this_col=0
+	    sum_scores_for_this_co=0
+	  } else { # data line
+	    curr_chr=$1
+	    curr_start=$2
+	    curr_end=$3
+	    curr_symbol=$8
+	    curr_score=$11
+	    terminate_prev_gene=0
+	    start_new_gene=0
+	    #print "prev_chr", prev_chr, "curr_chr", curr_chr, "prev_symbol", prev_symbol, "curr_symbol", curr_symbol, "prev_score", prev_score, "curr_score", curr_score, "currently_in_a_gene_exon", currently_in_a_gene_exon
+	    if ( ((prev_score!="NaN")&&(prev_score!=0) && (curr_score=="NaN")||(curr_score==0)) && (prev_chr!="") && (NR>2) && (currently_in_a_gene_exon==1) ) {
+	      terminate_prev_gene=1
+	    }
+	    if ( ((prev_chr!=curr_chr)||(prev_symbol!=curr_symbol)) && (prev_chr!="") && (NR>2) && (currently_in_a_gene_exon==1) ) {
+	      terminate_prev_gene=1
+	    }
+	    if ( ((prev_chr!=curr_chr)||(prev_symbol!=curr_symbol)) && (curr_score!="NaN")&&(curr_score!=0) ) {
+	      start_new_gene=1
+	    }
+	    if ( ((prev_score=="NaN")||(prev_score==0)) && (curr_score!="NaN")&&(curr_score!=0) ) {
+	      start_new_gene=1
+	    }
+	    if (terminate_prev_gene==1) { # output the previous gene and its scores
+	      #print "terminate_prev_gene"
+	      avg_score_for_this_col = 0
+	      if (num_scores_for_this_col!=0) { 
+		avg_score_for_this_col = sum_scores_for_this_col / num_scores_for_this_col
+	      }
+	      print prev_chr, lowest_start, prev_end, prev_symbol, avg_score_for_this_col
+	      currently_in_a_gene_exon=0
+	    }
+	    if (start_new_gene==1) { # this new line contains a new gene
+	      #print "start_new_gene"
+	      currently_in_a_gene_exon=1
+	      lowest_start = $2
+	      # initialise this new gene
+	      num_scores_for_this_col=0
+	      sum_scores_for_this_col=0
+	    }
+	    if (currently_in_a_gene_exon == 1) {
+	      if (($11!="NaN")&&($11!=0)) {
+		num_scores_for_this_col = num_scores_for_this_col + 1
+		sum_scores_for_this_col = sum_scores_for_this_col + $11
+	       }
+	    } else { # this new line contains the same gene as the previous line, or contains an intron and so we are not interested in it.
+	      # update the scores for this gene
+	      if (currently_in_a_gene_exon == 1) {
+		#print "currently_in_a_gene_exon"
+		num_scores_for_this_col=num_scores_for_this_col+1
+		sum_scores_for_this_col=sum_scores_for_this_col+$11
+	      }
+	    }
+	    prev_chr=$1
+	    prev_start=$2
+	    prev_end=$3
+	    prev_symbol=$8
+	    prev_score=$11
+	  }
+	}
+	END {
+	  # print out the last previous line(s) values
+	  terminate_prev_gene=0
+	  if (currently_in_a_gene_exon==1) {
+	    terminate_prev_gene=1
+	  }
+	  if (terminate_prev_gene==1) { # output the previous gene and its scores
+	    avg_score_for_this_col = 0
+	    if (num_scores_for_this_col!=0) { avg_score_for_this_col = sum_scores_for_this_col / num_scores_for_this_col }
+	    print prev_chr, lowest_start, prev_end, prev_symbol, avg_score_for_this_col
+	  }
+	}
+
+########## Convert the 4 exons reference files from hg19 to hg38
+
+qsub convert_hg19_to_hg38_sv_2.sh # 11 hg??_pext_sv_for_exons_of_Artery_Coronary.bed
+qsub convert_hg19_to_hg38_sv_2.sh # 12 hg??_pext_sv_for_exons_of_Artery_Aorta.bed
+qsub convert_hg19_to_hg38_sv_2.sh # 13 hg??_pext_sv_for_exons_of_Heart_AtrialAppendage.bed
+qsub convert_hg19_to_hg38_sv_2.sh # 14 hg??_pext_sv_for_exons_of_Heart_LeftVentricle.bed
+
+cat convert_hg19_to_hg38_sv_2.sh
+	#!/bin/bash
+	#PBS -P abcd
+	#PBS -q normal
+	#PBS -l walltime=10:00:00
+	#PBS -l mem=60G
+	#PBS -l ncpus=1
+	#PBS -l jobfs=60G
+	#PBS -N lift14over
+	#PBS -lstorage=scratch/abcd+gdata/abcd
+	#PBS -m bea
+	set -euo pipefail
+
+	#infile=annovar/humandb/temp_pext/hg19_pext_sv_for_exons_of_Artery_Coronary.bed
+	#outfile=annovar/humandb/temp_pext/hg38_pext_sv_for_exons_of_Artery_Coronary.bed
+	#infile=annovar/humandb/temp_pext/hg19_pext_sv_for_exons_of_Artery_Aorta.bed
+	#outfile=annovar/humandb/temp_pext/hg38_pext_sv_for_exons_of_Artery_Aorta.bed
+	#infile=annovar/humandb/temp_pext/hg19_pext_sv_for_exons_of_Heart_AtrialAppendage.bed
+	#outfile=annovar/humandb/temp_pext/hg38_pext_sv_for_exons_of_Heart_AtrialAppendage.bed
+	infile=annovar/humandb/temp_pext/hg19_pext_sv_for_exons_of_Heart_LeftVentricle.bed
+	outfile=annovar/humandb/temp_pext/hg38_pext_sv_for_exons_of_Heart_LeftVentricle.bed
+	tmpdir=annovar/humandb/temp_pext
+
+	module load java/jdk-8.40
+	module load htslib/1.9
+	module load bedtools/2.28.0
+	module load R/3.6.1
+	module load intel-compiler/2019.3.199
+	export R_LIBS_USER=victorchang_scripts/R_libraries_for_victorchang_scripts
+
+	sw=/g/data/jb96/software
+	export liftover_chain=liftover/hg19ToHg38.over.chain.gz
+
+	tmp_infile_for_liftover="${tmpdir}"/tmp_infile_for_liftover.txt
+	tmp_liftover_outfile="${tmpdir}"/tmp_liftover_outfile.txt
+	tmp_liftover_rejected_outfile="${tmpdir}"/tmp_liftover_rejected_outfile.txt
+	tmp_hdr="${tmpdir}"/tmp_hdr.txt
+
+	# head $infile
+	# #Chr	Start	End	Ref	Alt	PEXT_ensg	PEXT_csq	PEXT_symbol	PEXT_lof	PEXT_lof_flag	PEXT_Artery_Coronary	PEXT_Artery_Aorta	PEXT_Heart_AtrialAppendage	PEXT_Heart_LeftVentricle	PEXT_mean_proportion
+	# 1       69091   69091   A       C       ENSG00000186092 start_lost      OR4F5   null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       69091   69091   A       G       ENSG00000186092 start_lost      OR4F5   null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       69091   69091   A       T       ENSG00000186092 start_lost      OR4F5   null    null    NaN     NaN     NaN     NaN     NaN
+	# 1       69092   69092   T       A       ENSG00000186092 start_lost      OR4F5   null    null    NaN     NaN     NaN     NaN     NaN
+	# ...
+	# 1       887924  887924  G       T       ENSG00000188976 synonymous_variant      NOC2L   null    null    0.7623793210837746      0.7813705132008306      0.7596382674916707      0.7592487194080819      0.7314522329289305
+	# 1       887925  887925  G       A       ENSG00000188976 missense_variant        NOC2L   null    null    0.7623793210837746      0.7813705132008306      0.7596382674916707      0.7592487194080819      0.7314522329289305
+	# 1       887925  887925  G       C       ENSG00000188976 missense_variant        NOC2L   null    null    0.7623793210837746      0.7813705132008306      0.7596382674916707      0.7592487194080819      0.7314522329289305
+	# 1       887925  887925  G       T       ENSG00000188976 missense_variant        NOC2L   null    null    0.7623793210837746      0.7813705132008306      0.7596382674916707      0.7592487194080819      0.7314522329289305
+
+	echo 'awk' 'BEGIN {FS="\t";OFS="\t"} {if (NR==1) {print "#Chr", "Start", "End", "info"} else {print "chr" $1, $2, $3+1, $4 ";" $5}}' $infile '>' $tmp_infile_for_liftover
+	awk 'BEGIN {FS="\t";OFS="\t"} {if (NR==1) {print "#Chr", "Start", "End", "info"} else {print "chr" $1, $2, $3+1, $4 ";" $5}}' $infile > $tmp_infile_for_liftover
+	echo ''
+
+	echo 'liftOver' $tmp_infile_for_liftover '/g/data/jb96/software/liftover/hg19ToHg38.over.chain.gz' $tmp_liftover_outfile $tmp_liftover_rejected_outfile
+	liftOver $tmp_infile_for_liftover /g/data/jb96/software/liftover/hg19ToHg38.over.chain.gz $tmp_liftover_outfile $tmp_liftover_rejected_outfile
+	echo ''
+
+	# head $tmp_liftover_outfile
+	# chr1	69093	69094	G;T;ENSG00000186092;start_lost;OR4F5;null;null;NaN;NaN;NaN;NaN;NaN
+	# chr1	69094	69095	G;A;ENSG00000186092;missense_variant;OR4F5;null;null;NaN;NaN;NaN;NaN;NaN
+	# chr1	69094	69095	G;C;ENSG00000186092;missense_variant;OR4F5;null;null;NaN;NaN;NaN;NaN;NaN
+	# chr1	69094	69095	G;T;ENSG00000186092;missense_variant;OR4F5;null;null;NaN;NaN;NaN;NaN;NaN
+	# chr1	1244439	1244440	A;C;ENSG00000184163;missense_variant;FAM132A;null;null;0.1810344827586207;0.14225941422594146;0.23636363636363636;0.24390243902439024;0.18052903698444328
+	# chr1	1244439	1244440	A;G;ENSG00000184163;missense_variant;FAM132A;null;null;0.1810344827586207;0.14225941422594146;0.23636363636363636;0.24390243902439024;0.18052903698444328
+	# chr1	1244439	1244440	A;T;ENSG00000184163;missense_variant;FAM132A;null;null;0.1810344827586207;0.14225941422594146;0.23636363636363636;0.24390243902439024;0.18052903698444328
+	# chr1	1244440	1244441	C;A;ENSG00000184163;missense_variant;FAM132A;null;null;0.1810344827586207;0.14225941422594146;0.23636363636363636;0.24390243902439024;0.18052903698444328
+
+	echo 'head -n 1' $infile '>' $tmp_hdr
+	head -n 1 $infile > $tmp_hdr
+	echo ''
+
+	echo 'awk' 'BEGIN {FS=";";OFS="\t"} {print $1, $2, $3, $4, $5}' $tmp_liftover_outfile '| awk' 'BEGIN {FS="\t";OFS="\t"} {print $1, $2, $3-1, $4, $5}' '| cat' $tmp_hdr - > $outfile
+	awk 'BEGIN {FS=";";OFS="\t"} {print $1, $2, $3, $4, $5}' $tmp_liftover_outfile | awk 'BEGIN {FS="\t";OFS="\t"} {print $1, $2, $3-1, $4, $5}' | cat $tmp_hdr - > $outfile
+	echo ''
+
+	echo ''
+	echo 'outfile:' $outfile
+	echo ''
+
+
+########## Here is an example of using hg38_pext_sv_for_genes.bed to annotate a tab-delimited file using bedtools.
+
+./test_annotation.sh
+
+infile=gridss_annotate/FAMILY_FOUR_SAMPLE_ONE_SAMPLE_TWO_SAMPLE_THREE.gridss.filter_svtypes.tsv.rmvCols.tsv
+outfile_before_collapsing=test_outfile_before_collapsing.tsv
+outfile=test_outfile.tsv
+
+# #Chr	Start	End	PEXT_gene_symbol	PEXT_gene_avg_Artery_Coronary	PEXT_gene_avg_Artery_Aorta	PEXT_gene_avg_Heart_AtrialAppendage	PEXT_gene_avg_Heart_LeftVentricle	PEXT_gene_avg_mean_proportion
+# 1	69091	70008	OR4F5	0	0	0	0	0
+# 1	135800	139309	AL627309.1	1	1	1	1	1
+# 1	367659	368597	OR4F29	0	0	0	0	1
+# 1	621096	622034	OR4F16	0	0	0	0	1
+# 1	738532	739137	AL669831.1	0	0	0	0	0
+# 1	818043	819983	AL645608.2	0	0	0	0	0
+# 1	860326	879533	SAMD11	0.641463	0.602555	0.626179	0.799824	0.694072
+# 1	861264	866445	AL645608.1	0	0	0	0	0
+# 1	880074	894620	NOC2L	0.762379	0.781371	0.759638	0.759249	0.731452
+
+this_input=$infile
+pext_ref_table=annovar/humandb/temp_pext/hg38_pext_sv_for_genes.bed
+tmpdir=annovar/humandb/temp_pext
+
+this_hdr="${tmpdir}"/temp_pext_genes_hdr.txt
+
+cut1=$(head -n 1 "${this_input}" | sed -e 's/\t/\n/g' | wc -l)
+cut1_plus_4=$((cut1+4))
+cut1_plus_9=$((cut1+9))
+head -n 1 $this_input | sed 's/^#Chr/0Chr/' | sed -e 's/$/\t.\t.\t.\tPEXT_gene_symbol\tPEXT_gene_avg_Artery_Coronary\tPEXT_gene_avg_Artery_Aorta\tPEXT_gene_avg_Heart_AtrialAppendage\tPEXT_gene_avg_Heart_LeftVentricle\tPEXT_gene_avg_mean_proportion/' > $this_hdr
+
+echo 'bedtools intersect -wao -a' "${this_input}" '-b' "${pext_ref_table}" '| grep -v' '^#Chr' '| cat' $this_hdr '- | \'
+echo  'cut -d$''\t' '-f'"'1-'$cut1','$cut1_plus_4-$cut1_plus_9" '| sort | uniq | sort -k1,1 -k2,2n -k3,3n -k4,4 -k5,5 | sed' 's/^0Chr/#Chr/' '>' $outfile_before_collapsing '|| true'
+bedtools intersect -wao -a "${this_input}" -b "${pext_ref_table}" | grep -v '^#Chr' | cat $this_hdr - | \
+  cut -d$'\t' -f"1-$cut1,$cut1_plus_4-$cut1_plus_9" | sort | uniq | sort -k1,1 -k2,2n -k3,3n -k4,4 -k5,5 | sed 's/^0Chr/#Chr/' > $outfile_before_collapsing || true
+echo ''
+
+num_ref_cols=$(head -n 1 "${pext_ref_table}" | cut -d$'\t' -f4- | sed -e 's/\t/\n/g' | wc -l)
+num_output_cols=$(head -n 1 "${outfile_before_collapsing}" | sed -e 's/\t/\n/g' | wc -l)
+list_columns_to_collapse=""
+i=$(( $num_output_cols - $ref + 1 ))
+while [[ $i -le $num_output_cols ]]; do
+  if [[ $list_columns_to_collapse == "" ]]; then
+    list_columns_to_collapse="${i}"
+  else
+    new_list_columns_to_collapse="${list_columns_to_collapse},${i}"
+    list_columns_to_collapse=$new_list_columns_to_collapse
+  fi
+  i=$(( $i + 1 ))
+done
+# collapse_manta_bedtools_SVs_to_unique_row_and_value.awk checks for duplicate values and takes too long to run
+# collapse_manta_bedtools_SVs_to_unique.awk does not check for duplicate values and for this field we do not need to check
+# collapse_manta_bedtools_SVs_to_unique_by_column.awk does not check for duplicate values and collapses multiple last columns, not just the one last column
+echo 'awk -v key=1,2,3,4,5 -v collapse='$list_columns_to_collapse '-f' $sw'/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk' $outfile_before_collapsing '>' $outfile
+awk -v key=1,2,3,4,5 -v collapse=$list_columns_to_collapse -f $sw/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk $outfile_before_collapsing > $outfile
+echo ''
+
+########## Here is an example of using hg38_pext_sv_for_exons_of_*.bed to annotate a tab-delimited file using bedtools.
+########## hg19_pext_sv_for_exons_of_Artery_Coronary.bed
+########## hg19_pext_sv_for_exons_of_Artery_Aorta.bed
+########## hg19_pext_sv_for_exons_of_Heart_AtrialAppendage.bed
+########## hg19_pext_sv_for_exons_of_Heart_LeftVentricle.bed
+
+./test_annotation_2.sh
+
+cat test_annotation_2.sh
+#!/bin/bash
+
+	infile=gridss_annotate/FAMILY_FOUR_SAMPLE_ONE_SAMPLE_TWO_SAMPLE_THREE.gridss.filter_svtypes.tsv.rmvCols.tsv
+	outfile11_before_collapsing=test_outfile11_before_collapsing.tsv
+	outfile11=test_outfile11.tsv
+	outfile12_before_collapsing=test_outfile12_before_collapsing.tsv
+	outfile12=test_outfile12.tsv
+	outfile13_before_collapsing=test_outfile13_before_collapsing.tsv
+	outfile13=test_outfile13.tsv
+	outfile14_before_collapsing=test_outfile14_before_collapsing.tsv
+	outfile14=test_outfile14.tsv
+
+	pext11=annovar/humandb/temp_pext/hg38_pext_sv_for_exons_of_Artery_Coronary.bed
+	pext12=annovar/humandb/temp_pext/hg38_pext_sv_for_exons_of_Artery_Aorta.bed
+	pext13=annovar/humandb/temp_pext/hg38_pext_sv_for_exons_of_Heart_AtrialAppendage.bed
+	pext14=annovar/humandb/temp_pext/hg38_pext_sv_for_exons_of_Heart_LeftVentricle.bed
+
+	tmpdir=annovar/humandb/temp_pext
+
+	##########
+
+	this_input=$infile
+
+	this_hdr="${tmpdir}"/temp_pext_genes_hdr.txt
+	num_input_cols=$(head -n 1 "${this_input}" | sed -e 's/\t/\n/g' | wc -l)
+	num_input_cols_plus_4=$((num_input_cols+4))
+	num_input_cols_plus_end_col=$((num_input_cols+5))
+	hdr_text=$(head -n 1 $pext11 | cut -d$'\t' -f4-)
+	sed_string='s/$/\t.\t.\t.\t'$hdr_text'/'
+	head -n 1 $this_input | sed 's/^#Chr/0Chr/' | sed -e "$sed_string" > $this_hdr
+
+	echo 'bedtools intersect -wao -a' "${this_input}" '-b' "${pext11}" '| grep -v' '^#Chr' '| cat' $this_hdr '- | \'
+	echo  'cut -d$''\t' '-f'"'1-'$num_input_cols','$num_input_cols_plus_4-$num_input_cols_plus_end_col" '| sort | uniq | sort -k1,1 -k2,2n -k3,3n -k4,4 -k5,5 | sed' 's/^0Chr/#Chr/' '>' $outfile11_before_collapsing '|| true'
+	bedtools intersect -wao -a "${this_input}" -b "${pext11}" | grep -v '^#Chr' | cat $this_hdr - | \
+	  cut -d$'\t' -f"1-$num_input_cols,$num_input_cols_plus_4-$num_input_cols_plus_end_col" | sort | uniq | sort -k1,1 -k2,2n -k3,3n -k4,4 -k5,5 | sed 's/^0Chr/#Chr/' > $outfile11_before_collapsing || true
+	echo ''
+
+	num_ref_cols=$(head -n 1 "${pext11}" | cut -d$'\t' -f4- | sed -e 's/\t/\n/g' | wc -l)
+	num_output_cols=$(head -n 1 "${outfile11_before_collapsing}" | sed -e 's/\t/\n/g' | wc -l)
+	list_columns_to_collapse=""
+	i=$(( $num_output_cols - $ref + 1 ))
+	while [[ $i -le $num_output_cols ]]; do
+	  if [[ $list_columns_to_collapse == "" ]]; then
+	    list_columns_to_collapse="${i}"
+	  else
+	    new_list_columns_to_collapse="${list_columns_to_collapse},${i}"
+	    list_columns_to_collapse=$new_list_columns_to_collapse
+	  fi
+	  i=$(( $i + 1 ))
+	done
+	# collapse_manta_bedtools_SVs_to_unique_row_and_value.awk checks for duplicate values and takes too long to run
+	# collapse_manta_bedtools_SVs_to_unique.awk does not check for duplicate values and for this field we do not need to check
+	# collapse_manta_bedtools_SVs_to_unique_by_column.awk does not check for duplicate values and collapses multiple last columns, not just the one last column
+	echo 'awk -v key=1,2,3,4,5 -v collapse='$list_columns_to_collapse '-f' $sw'/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk' $outfile11_before_collapsing '>' $outfile11
+	awk -v key=1,2,3,4,5 -v collapse=$list_columns_to_collapse -f $sw/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk $outfile11_before_collapsing > $outfile11
+	echo ''
+
+	##########
+
+	this_input=$outfile11
+
+	this_hdr="${tmpdir}"/temp_pext_genes_hdr.txt
+	num_input_cols=$(head -n 1 "${this_input}" | sed -e 's/\t/\n/g' | wc -l)
+	num_input_cols_plus_4=$((num_input_cols+4))
+	num_input_cols_plus_end_col=$((num_input_cols+5))
+	hdr_text=$(head -n 1 $pext12 | cut -d$'\t' -f4-)
+	sed_string='s/$/\t.\t.\t.\t'$hdr_text'/'
+	head -n 1 $this_input | sed 's/^#Chr/0Chr/' | sed -e "$sed_string" > $this_hdr
+
+	echo 'bedtools intersect -wao -a' "${this_input}" '-b' "${pext12}" '| grep -v' '^#Chr' '| cat' $this_hdr '- | \'
+	echo  'cut -d$''\t' '-f'"'1-'$num_input_cols','$num_input_cols_plus_4-$num_input_cols_plus_end_col" '| sort | uniq | sort -k1,1 -k2,2n -k3,3n -k4,4 -k5,5 | sed' 's/^0Chr/#Chr/' '>' $outfile12_before_collapsing '|| true'
+	bedtools intersect -wao -a "${this_input}" -b "${pext12}" | grep -v '^#Chr' | cat $this_hdr - | \
+	  cut -d$'\t' -f"1-$num_input_cols,$num_input_cols_plus_4-$num_input_cols_plus_end_col" | sort | uniq | sort -k1,1 -k2,2n -k3,3n -k4,4 -k5,5 | sed 's/^0Chr/#Chr/' > $outfile12_before_collapsing || true
+	echo ''
+
+	num_ref_cols=$(head -n 1 "${pext12}" | cut -d$'\t' -f4- | sed -e 's/\t/\n/g' | wc -l)
+	num_output_cols=$(head -n 1 "${outfile12_before_collapsing}" | sed -e 's/\t/\n/g' | wc -l)
+	list_columns_to_collapse=""
+	i=$(( $num_output_cols - $ref + 1 ))
+	while [[ $i -le $num_output_cols ]]; do
+	  if [[ $list_columns_to_collapse == "" ]]; then
+	    list_columns_to_collapse="${i}"
+	  else
+	    new_list_columns_to_collapse="${list_columns_to_collapse},${i}"
+	    list_columns_to_collapse=$new_list_columns_to_collapse
+	  fi
+	  i=$(( $i + 1 ))
+	done
+	# collapse_manta_bedtools_SVs_to_unique_row_and_value.awk checks for duplicate values and takes too long to run
+	# collapse_manta_bedtools_SVs_to_unique.awk does not check for duplicate values and for this field we do not need to check
+	# collapse_manta_bedtools_SVs_to_unique_by_column.awk does not check for duplicate values and collapses multiple last columns, not just the one last column
+	echo 'awk -v key=1,2,3,4,5 -v collapse='$list_columns_to_collapse '-f' $sw'/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk' $outfile12_before_collapsing '>' $outfile12
+	awk -v key=1,2,3,4,5 -v collapse=$list_columns_to_collapse -f $sw/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk $outfile12_before_collapsing > $outfile12
+	echo ''
+
+	##########
+
+	this_input=$outfile12
+
+	this_hdr="${tmpdir}"/temp_pext_genes_hdr.txt
+	num_input_cols=$(head -n 1 "${this_input}" | sed -e 's/\t/\n/g' | wc -l)
+	num_input_cols_plus_4=$((num_input_cols+4))
+	num_input_cols_plus_end_col=$((num_input_cols+5))
+	hdr_text=$(head -n 1 $pext13 | cut -d$'\t' -f4-)
+	sed_string='s/$/\t.\t.\t.\t'$hdr_text'/'
+	head -n 1 $this_input | sed 's/^#Chr/0Chr/' | sed -e "$sed_string" > $this_hdr
+
+	echo 'bedtools intersect -wao -a' "${this_input}" '-b' "${pext13}" '| grep -v' '^#Chr' '| cat' $this_hdr '- | \'
+	echo  'cut -d$''\t' '-f'"'1-'$num_input_cols','$num_input_cols_plus_4-$num_input_cols_plus_end_col" '| sort | uniq | sort -k1,1 -k2,2n -k3,3n -k4,4 -k5,5 | sed' 's/^0Chr/#Chr/' '>' $outfile13_before_collapsing '|| true'
+	bedtools intersect -wao -a "${this_input}" -b "${pext13}" | grep -v '^#Chr' | cat $this_hdr - | \
+	  cut -d$'\t' -f"1-$num_input_cols,$num_input_cols_plus_4-$num_input_cols_plus_end_col" | sort | uniq | sort -k1,1 -k2,2n -k3,3n -k4,4 -k5,5 | sed 's/^0Chr/#Chr/' > $outfile13_before_collapsing || true
+	echo ''
+
+	num_ref_cols=$(head -n 1 "${pext13}" | cut -d$'\t' -f4- | sed -e 's/\t/\n/g' | wc -l)
+	num_output_cols=$(head -n 1 "${outfile13_before_collapsing}" | sed -e 's/\t/\n/g' | wc -l)
+	list_columns_to_collapse=""
+	i=$(( $num_output_cols - $ref + 1 ))
+	while [[ $i -le $num_output_cols ]]; do
+	  if [[ $list_columns_to_collapse == "" ]]; then
+	    list_columns_to_collapse="${i}"
+	  else
+	    new_list_columns_to_collapse="${list_columns_to_collapse},${i}"
+	    list_columns_to_collapse=$new_list_columns_to_collapse
+	  fi
+	  i=$(( $i + 1 ))
+	done
+	# collapse_manta_bedtools_SVs_to_unique_row_and_value.awk checks for duplicate values and takes too long to run
+	# collapse_manta_bedtools_SVs_to_unique.awk does not check for duplicate values and for this field we do not need to check
+	# collapse_manta_bedtools_SVs_to_unique_by_column.awk does not check for duplicate values and collapses multiple last columns, not just the one last column
+	echo 'awk -v key=1,2,3,4,5 -v collapse='$list_columns_to_collapse '-f' $sw'/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk' $outfile13_before_collapsing '>' $outfile13
+	awk -v key=1,2,3,4,5 -v collapse=$list_columns_to_collapse -f $sw/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk $outfile13_before_collapsing > $outfile13
+	echo ''
+
+	##########
+
+	this_input=$outfile13
+
+	this_hdr="${tmpdir}"/temp_pext_genes_hdr.txt
+	num_input_cols=$(head -n 1 "${this_input}" | sed -e 's/\t/\n/g' | wc -l)
+	num_input_cols_plus_4=$((num_input_cols+4))
+	num_input_cols_plus_end_col=$((num_input_cols+5))
+	hdr_text=$(head -n 1 $pext14 | cut -d$'\t' -f4-)
+	sed_string='s/$/\t.\t.\t.\t'$hdr_text'/'
+	head -n 1 $this_input | sed 's/^#Chr/0Chr/' | sed -e "$sed_string" > $this_hdr
+
+	echo 'bedtools intersect -wao -a' "${this_input}" '-b' "${pext14}" '| grep -v' '^#Chr' '| cat' $this_hdr '- | \'
+	echo  'cut -d$''\t' '-f'"'1-'$num_input_cols','$num_input_cols_plus_4-$num_input_cols_plus_end_col" '| sort | uniq | sort -k1,1 -k2,2n -k3,3n -k4,4 -k5,5 | sed' 's/^0Chr/#Chr/' '>' $outfile14_before_collapsing '|| true'
+	bedtools intersect -wao -a "${this_input}" -b "${pext14}" | grep -v '^#Chr' | cat $this_hdr - | \
+	  cut -d$'\t' -f"1-$num_input_cols,$num_input_cols_plus_4-$num_input_cols_plus_end_col" | sort | uniq | sort -k1,1 -k2,2n -k3,3n -k4,4 -k5,5 | sed 's/^0Chr/#Chr/' > $outfile14_before_collapsing || true
+	echo ''
+
+	num_ref_cols=$(head -n 1 "${pext14}" | cut -d$'\t' -f4- | sed -e 's/\t/\n/g' | wc -l)
+	num_output_cols=$(head -n 1 "${outfile14_before_collapsing}" | sed -e 's/\t/\n/g' | wc -l)
+	list_columns_to_collapse=""
+	i=$(( $num_output_cols - $ref + 1 ))
+	while [[ $i -le $num_output_cols ]]; do
+	  if [[ $list_columns_to_collapse == "" ]]; then
+	    list_columns_to_collapse="${i}"
+	  else
+	    new_list_columns_to_collapse="${list_columns_to_collapse},${i}"
+	    list_columns_to_collapse=$new_list_columns_to_collapse
+	  fi
+	  i=$(( $i + 1 ))
+	done
+	# collapse_manta_bedtools_SVs_to_unique_row_and_value.awk checks for duplicate values and takes too long to run
+	# collapse_manta_bedtools_SVs_to_unique.awk does not check for duplicate values and for this field we do not need to check
+	# collapse_manta_bedtools_SVs_to_unique_by_column.awk does not check for duplicate values and collapses multiple last columns, not just the one last column
+	echo 'awk -v key=1,2,3,4,5 -v collapse='$list_columns_to_collapse '-f' $sw'/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk' $outfile14_before_collapsing '>' $outfile14
+	awk -v key=1,2,3,4,5 -v collapse=$list_columns_to_collapse -f $sw/victorchang_scripts/collapse_manta_bedtools_SVs_to_unique_by_column.awk $outfile14_before_collapsing > $outfile14
+	echo ''
+
+	##########
+
+	echo ''
+	echo 'outfile:' $outfile14
+	echo ''
+
+########## Are PEXT multiple scores correctly represented in the annovar annotation file? Yes
+
+Results of looking into this: 
+There exist PEXT scores where the PEXT_ensg is different and the PEXT_csq consequence and PEXT_symbol gene are the same.
+The tissue score may be different for the different ENSG having the same consequence and gene.
+The tissue score of one tissue may be the same, but the scores of a different tissue are different, 
+and thus there are different entries, and for tissue one the scores are the same, and for tissue two the scores are different.
+This is how the situation arises that a tissue has two bar-delimited entries that are the same.
+This is how the situation arises that a tissue has two bar-delimited entries that are all the same except for the scores which are different.
+
+#CHROM	POS	END	ID	REF	ALT	PEXT_ensg	PEXT_csq	PEXT_symbol	PEXT_Artery_Coronary
+chr17	4900101	4900101	.	G	T	ENSG00000205710|ENSG00000205710	stop_gained|stop_gained	C17orf107|C17orf107	0.7131147540983607|0.28688524590163933
+chr16	56510858	56510858	.	C	A	ENSG00000125124|ENSG00000125124	splice_donor_variant|splice_donor_variant	BBS2|BBS2	0.5638111888111889|0.0
+chr14	105252515	105252515	.	G	A	ENSG00000185024|ENSG00000185024	incomplete_terminal_codon_variant|missense_variant	BRF1|BRF1	0.0|0.4023154848046309
+
+hg38:chr17:4900101-4900102	hg19:chr17:4803396-4803397
+hg38:chr16:56510858-56510859	hg19:chr16:56544770-56544771
+hg38:chr14:105252515-105252516	hg19:chr14:105718852-105718853
+
+cd annovar/humandb/temp_pext
+
+grep -P '17\t4803396' all.possible.snvs.tx_annotated.GTEx.v7.021520.tsv > temp_verify_hg38_chr17_4900101_G_T.txt
+grep -P '16\t56544770' all.possible.snvs.tx_annotated.GTEx.v7.021520.tsv > temp_verify_hg38_chr16_56510858_C_A.txt
+grep -P '14\t105718852' all.possible.snvs.tx_annotated.GTEx.v7.021520.tsv > temp_verify_hg38_chr14_105252515_G_A.txt
+
+cat temp_verify_hg38_chr17_4900101_G_T.txt
+17	4803396	G	T	[{"ensg":"ENSG00000205710","csq":"stop_gained","symbol":"C17orf107","lof":"HC","lof_flag":null,"Cells_Transformedfibroblasts":0.7024793388429752,"Prostate":0.7526395173453997,"Spleen":0.7087378640776699,"Brain_FrontalCortex_BA9_":0.7243401759530792,"SmallIntestine_TerminalIleum":0.7261904761904762,"MinorSalivaryGland":0.6927710843373494,"Artery_Coronary":0.7131147540983607,"Skin_SunExposed_Lowerleg_":0.765079365079365,"Cells_EBV_transformedlymphocytes":0.6842105263157895,"Brain_Hippocampus":0.7254901960784313,"Esophagus_Muscularis":0.6941176470588235,"Brain_Nucleusaccumbens_basalganglia_":0.7300613496932515,"Artery_Tibial":0.7209302325581396,"Brain_Hypothalamus":0.7732793522267207,"Adipose_Visceral_Omentum_":0.7371428571428572,"Cervix_Ectocervix":0.7548209366391185,"Brain_Spinalcord_cervicalc_1_":0.7971014492753623,"Brain_CerebellarHemisphere":0.672281776416539,"Nerve_Tibial":0.7196652719665272,"Breast_MammaryTissue":0.7321428571428572,"Liver":0.746268656716418,"Skin_NotSunExposed_Suprapubic_":0.7606177606177607,"AdrenalGland":0.7009345794392523,"Vagina":0.7054794520547946,"Pancreas":0.6777777777777778,"Lung":0.71875,"FallopianTube":0.6592592592592592,"Pituitary":0.7484197218710493,"Muscle_Skeletal":0.7692307692307693,"Colon_Transverse":0.7163120567375886,"Artery_Aorta":0.7134146341463414,"Heart_AtrialAppendage":0.7536231884057971,"Adipose_Subcutaneous":0.7142857142857143,"Esophagus_Mucosa":0.7721518987341771,"Heart_LeftVentricle":0.7272727272727273,"Brain_Cerebellum":0.7027522935779816,"Brain_Cortex":0.7468553459119497,"Thyroid":0.7323943661971831,"Brain_Substantianigra":0.7704918032786885,"Kidney_Cortex":0.7272727272727273,"Uterus":0.7046632124352331,"Stomach":0.7017543859649122,"WholeBlood":0.7741935483870968,"Bladder":0.5568181818181818,"Brain_Anteriorcingulatecortex_BA24_":0.7233009708737864,"Brain_Putamen_basalganglia_":0.7928571428571428,"Brain_Caudate_basalganglia_":0.77,"Colon_Sigmoid":0.7441860465116279,"Cervix_Endocervix":0.7511737089201879,"Ovary":0.7002724795640327,"Esophagus_GastroesophagealJunction":0.7115384615384615,"Testis":0.49612403100775193,"Brain_Amygdala":0.8095238095238094,"mean_proportion":0.723142787559043},{"ensg":"ENSG00000205710","csq":"stop_gained","symbol":"C17orf107","lof":"LC","lof_flag":null,"Cells_Transformedfibroblasts":0.2975206611570248,"Prostate":0.24736048265460028,"Spleen":0.2912621359223301,"Brain_FrontalCortex_BA9_":0.2756598240469208,"SmallIntestine_TerminalIleum":0.27380952380952384,"MinorSalivaryGland":0.3072289156626506,"Artery_Coronary":0.28688524590163933,"Skin_SunExposed_Lowerleg_":0.2349206349206349,"Cells_EBV_transformedlymphocytes":0.3157894736842105,"Brain_Hippocampus":0.27450980392156865,"Esophagus_Muscularis":0.3058823529411765,"Brain_Nucleusaccumbens_basalganglia_":0.26993865030674846,"Artery_Tibial":0.27906976744186046,"Brain_Hypothalamus":0.2267206477732794,"Adipose_Visceral_Omentum_":0.26285714285714284,"Cervix_Ectocervix":0.24517906336088152,"Brain_Spinalcord_cervicalc_1_":0.2028985507246377,"Brain_CerebellarHemisphere":0.3277182235834609,"Nerve_Tibial":0.2803347280334728,"Breast_MammaryTissue":0.26785714285714285,"Liver":0.2537313432835821,"Skin_NotSunExposed_Suprapubic_":0.2393822393822394,"AdrenalGland":0.29906542056074764,"Vagina":0.2945205479452055,"Pancreas":0.32222222222222224,"Lung":0.28125000000000006,"FallopianTube":0.34074074074074073,"Pituitary":0.2515802781289507,"Muscle_Skeletal":0.23076923076923075,"Colon_Transverse":0.2836879432624113,"Artery_Aorta":0.2865853658536585,"Heart_AtrialAppendage":0.2463768115942029,"Adipose_Subcutaneous":0.28571428571428575,"Esophagus_Mucosa":0.22784810126582278,"Heart_LeftVentricle":0.2727272727272727,"Brain_Cerebellum":0.29724770642201837,"Brain_Cortex":0.2531446540880503,"Thyroid":0.26760563380281693,"Brain_Substantianigra":0.2295081967213115,"Kidney_Cortex":0.27272727272727276,"Uterus":0.2953367875647668,"Stomach":0.29824561403508776,"WholeBlood":0.22580645161290325,"Bladder":0.4431818181818182,"Brain_Anteriorcingulatecortex_BA24_":0.2766990291262136,"Brain_Putamen_basalganglia_":0.20714285714285716,"Brain_Caudate_basalganglia_":0.23,"Colon_Sigmoid":0.2558139534883721,"Cervix_Endocervix":0.24882629107981225,"Ovary":0.29972752043596734,"Esophagus_GastroesophagealJunction":0.28846153846153844,"Testis":0.5038759689922481,"Brain_Amygdala":0.19047619047619047,"mean_proportion":0.27685721244095707}]
+
+cat temp_verify_hg38_chr16_56510858_C_A.txt
+16	56544770	C	A	[{"ensg":"ENSG00000125124","csq":"splice_donor_variant","symbol":"BBS2","lof":"HC","lof_flag":null,"Cells_Transformedfibroblasts":0.7115160915083366,"Prostate":0.4759538079228184,"Spleen":0.4606971975393028,"Brain_FrontalCortex_BA9_":0.5305322128851541,"SmallIntestine_TerminalIleum":0.46542660735948244,"MinorSalivaryGland":0.5224625623960066,"Artery_Coronary":0.5638111888111889,"Skin_SunExposed_Lowerleg_":0.44353693181818177,"Cells_EBV_transformedlymphocytes":0.6256983240223464,"Brain_Hippocampus":0.4709233325421315,"Esophagus_Muscularis":0.5808610709117221,"Brain_Nucleusaccumbens_basalganglia_":0.5066561014263075,"Artery_Tibial":0.5825318429945412,"Brain_Hypothalamus":0.5059410646387833,"Adipose_Visceral_Omentum_":0.5651162790697675,"Cervix_Ectocervix":0.5269965277777777,"Brain_Spinalcord_cervicalc_1_":0.45981895436911147,"Brain_CerebellarHemisphere":0.4232278076817809,"Nerve_Tibial":0.40704705791146595,"Breast_MammaryTissue":0.5146409291673483,"Liver":0.5023112480739599,"Skin_NotSunExposed_Suprapubic_":0.4351204351204351,"AdrenalGland":0.6025859965845328,"Vagina":0.5177019291922832,"Pancreas":0.41897233201581036,"Lung":0.520389249304912,"FallopianTube":0.49833147942157957,"Pituitary":0.5096561469618465,"Muscle_Skeletal":0.6376001943162497,"Colon_Transverse":0.5349112426035503,"Artery_Aorta":0.5934100093254585,"Heart_AtrialAppendage":0.5928945835760046,"Adipose_Subcutaneous":0.5181582360570688,"Esophagus_Mucosa":0.5800591465990705,"Heart_LeftVentricle":0.6326086956521739,"Brain_Cerebellum":0.42481468408048,"Brain_Cortex":0.5350030437429341,"Thyroid":0.4670842544829281,"Brain_Substantianigra":0.4770258035310096,"Kidney_Cortex":0.5239629480467176,"Uterus":0.5288877576991601,"Stomach":0.5685583362707085,"WholeBlood":0.4557522123893805,"Bladder":0.5806811836962591,"Brain_Anteriorcingulatecortex_BA24_":0.5378028404344194,"Brain_Putamen_basalganglia_":0.44436422705531986,"Brain_Caudate_basalganglia_":0.49159082635602475,"Colon_Sigmoid":0.5271623672230653,"Cervix_Endocervix":0.4779289744440756,"Ovary":0.49322951929587006,"Esophagus_GastroesophagealJunction":0.5547469961076326,"Testis":0.39684050247430525,"Brain_Amygdala":0.5030005455537371,"mean_proportion":0.5174819592536325},{"ensg":"ENSG00000125124","csq":"splice_donor_variant","symbol":"BBS2","lof":"LC","lof_flag":null,"Cells_Transformedfibroblasts":0.0,"Prostate":0.0,"Spleen":0.0,"Brain_FrontalCortex_BA9_":0.0,"SmallIntestine_TerminalIleum":0.0,"MinorSalivaryGland":0.0,"Artery_Coronary":0.0,"Skin_SunExposed_Lowerleg_":0.0,"Cells_EBV_transformedlymphocytes":0.0,"Brain_Hippocampus":0.0,"Esophagus_Muscularis":0.0,"Brain_Nucleusaccumbens_basalganglia_":0.0028526148969889066,"Artery_Tibial":0.0,"Brain_Hypothalamus":0.0,"Adipose_Visceral_Omentum_":0.0,"Cervix_Ectocervix":0.0,"Brain_Spinalcord_cervicalc_1_":0.0,"Brain_CerebellarHemisphere":0.0,"Nerve_Tibial":0.007713776261725714,"Breast_MammaryTissue":0.0,"Liver":0.0,"Skin_NotSunExposed_Suprapubic_":0.0,"AdrenalGland":0.0,"Vagina":0.0,"Pancreas":0.0,"Lung":0.0,"FallopianTube":0.0,"Pituitary":0.0,"Muscle_Skeletal":0.0,"Colon_Transverse":0.0,"Artery_Aorta":0.0,"Heart_AtrialAppendage":0.0,"Adipose_Subcutaneous":0.0,"Esophagus_Mucosa":0.0,"Heart_LeftVentricle":0.0,"Brain_Cerebellum":0.0,"Brain_Cortex":0.0,"Thyroid":0.0,"Brain_Substantianigra":0.0,"Kidney_Cortex":0.0,"Uterus":0.0,"Stomach":0.0,"WholeBlood":0.0,"Bladder":0.0,"Brain_Anteriorcingulatecortex_BA24_":0.0,"Brain_Putamen_basalganglia_":0.0,"Brain_Caudate_basalganglia_":0.004732435384055334,"Colon_Sigmoid":0.0,"Cervix_Endocervix":0.0,"Ovary":0.0,"Esophagus_GastroesophagealJunction":0.0,"Testis":0.0,"Brain_Amygdala":0.0034915439170758317,"mean_proportion":3.5453529169520353E-4}]
+
+cat temp_verify_hg38_chr14_105252515_G_A.txt
+14	105718852	G	A	[{"ensg":"ENSG00000185024","csq":"incomplete_terminal_codon_variant","symbol":"BRF1","lof":null,"lof_flag":null,"Cells_Transformedfibroblasts":0.0,"Prostate":0.0,"Spleen":0.0,"Brain_FrontalCortex_BA9_":0.0,"SmallIntestine_TerminalIleum":0.0,"MinorSalivaryGland":0.0,"Artery_Coronary":0.0,"Skin_SunExposed_Lowerleg_":0.0,"Cells_EBV_transformedlymphocytes":0.0,"Brain_Hippocampus":0.0,"Esophagus_Muscularis":0.0,"Brain_Nucleusaccumbens_basalganglia_":0.0,"Artery_Tibial":0.0,"Brain_Hypothalamus":4.610419548178884E-4,"Adipose_Visceral_Omentum_":0.0,"Cervix_Ectocervix":0.0,"Brain_Spinalcord_cervicalc_1_":0.02150929639081298,"Brain_CerebellarHemisphere":0.0,"Nerve_Tibial":0.0,"Breast_MammaryTissue":0.0,"Liver":0.0,"Skin_NotSunExposed_Suprapubic_":0.0,"AdrenalGland":0.0,"Vagina":0.0,"Pancreas":0.0,"Lung":0.0,"FallopianTube":0.0,"Pituitary":0.0,"Muscle_Skeletal":0.0,"Colon_Transverse":0.0,"Artery_Aorta":0.0,"Heart_AtrialAppendage":0.0,"Adipose_Subcutaneous":0.0,"Esophagus_Mucosa":0.0,"Heart_LeftVentricle":0.0,"Brain_Cerebellum":0.0,"Brain_Cortex":0.0,"Thyroid":0.0,"Brain_Substantianigra":0.007566585956416465,"Kidney_Cortex":0.0,"Uterus":0.0,"Stomach":0.0,"WholeBlood":0.0,"Bladder":0.0,"Brain_Anteriorcingulatecortex_BA24_":0.0,"Brain_Putamen_basalganglia_":7.763975155279503E-4,"Brain_Caudate_basalganglia_":0.0,"Colon_Sigmoid":0.0,"Cervix_Endocervix":0.002477291494632535,"Ovary":0.0,"Esophagus_GastroesophagealJunction":0.0,"Testis":0.0,"Brain_Amygdala":0.0,"mean_proportion":6.186908172114683E-4},{"ensg":"ENSG00000185024","csq":"missense_variant","symbol":"BRF1","lof":null,"lof_flag":null,"Cells_Transformedfibroblasts":0.4374531835205992,"Prostate":0.27210056772100566,"Spleen":0.3109645131938126,"Brain_FrontalCortex_BA9_":0.24477351916376305,"SmallIntestine_TerminalIleum":0.3576826196473552,"MinorSalivaryGland":0.39000693962526023,"Artery_Coronary":0.4023154848046309,"Skin_SunExposed_Lowerleg_":0.35894988066825767,"Cells_EBV_transformedlymphocytes":0.4188198997300424,"Brain_Hippocampus":0.26060606060606056,"Esophagus_Muscularis":0.48916408668730643,"Brain_Nucleusaccumbens_basalganglia_":0.26225634967513295,"Artery_Tibial":0.4539792387543253,"Brain_Hypothalamus":0.2374366067312125,"Adipose_Visceral_Omentum_":0.34172661870503596,"Cervix_Ectocervix":0.4103671706263498,"Brain_Spinalcord_cervicalc_1_":0.3725847612103537,"Brain_CerebellarHemisphere":0.3135123382976411,"Nerve_Tibial":0.3765609990393853,"Breast_MammaryTissue":0.3633065561026172,"Liver":0.3078758949880669,"Skin_NotSunExposed_Suprapubic_":0.34245187436676794,"AdrenalGland":0.4169797145003757,"Vagina":0.31988041853512705,"Pancreas":0.425758382118148,"Lung":0.3116952789699571,"FallopianTube":0.4409553295002212,"Pituitary":0.2948023822414727,"Muscle_Skeletal":0.5771812080536911,"Colon_Transverse":0.38660907127429806,"Artery_Aorta":0.404744787922358,"Heart_AtrialAppendage":0.3812664907651715,"Adipose_Subcutaneous":0.37068965517241376,"Esophagus_Mucosa":0.36613844870725604,"Heart_LeftVentricle":0.3929203539823008,"Brain_Cerebellum":0.3083764219234746,"Brain_Cortex":0.23376361436062928,"Thyroid":0.3547304853500336,"Brain_Substantianigra":0.2793583535108959,"Kidney_Cortex":0.3006700167504187,"Uterus":0.40762711864406775,"Stomach":0.3772011121408712,"WholeBlood":0.23563218390804597,"Bladder":0.43505253104106967,"Brain_Anteriorcingulatecortex_BA24_":0.2192329708070979,"Brain_Putamen_basalganglia_":0.2818322981366459,"Brain_Caudate_basalganglia_":0.29238938053097346,"Colon_Sigmoid":0.42727272727272725,"Cervix_Endocervix":0.3761354252683732,"Ovary":0.3714285714285714,"Esophagus_GastroesophagealJunction":0.45698614318706704,"Testis":0.29933110367892973,"Brain_Amygdala":0.24004507888805413,"mean_proportion":0.3530487211780325}]
+
+
+##########
+

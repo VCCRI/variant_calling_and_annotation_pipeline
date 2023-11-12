@@ -1,0 +1,65 @@
+
+https://www.mitomap.org/MITOMAP/MitoTipInfo
+MitoTIP
+Current Raw Scores (range: -5.9 – 21.8)	Quartile	Quartile Ranking / Score Interpretation
+>16.25					>75 - 100%	likely pathogenic
+12.66 – 16.25				>50 - 75%	possibly pathogenic
+8.44 – 12.66				>25 - 50%	possibly benign
+< 8.44					0 - 25%		likely benign
+
+MitoTip Scores
+The current MitoTip scores are available for downloading as a tab delimited table at the following link.
+https://mitomap.org/downloads/mitotip_scores.txt
+
+wget https://mitomap.org/downloads/mitotip_scores.txt
+
+head mitotip_scores.txt
+Position	rCRS	Alt	MitoTIP_Score	Quartile	Count	Percentage	Mitomap_Status
+577	G	:	20.3833	Q1	0	0.000	Absent
+577	G	A	17.75	Q1	0	0.000	Absent
+577	G	C	17.75	Q1	0	0.000	Absent
+577	G	T	17.75	Q1	0	0.000	Absent
+578	T	:	18.6851	Q1	0	0.000	Absent
+578	T	A	18.6851	Q1	0	0.000	Absent
+578	T	C	16.6004	Q1	0	0.000	Absent
+578	T	G	18.6851	Q1	0	0.000	Absent
+579	T	:	17.6526	Q1	0	0.000	Absent
+
+:>temp.vcf
+echo '##fileformat=VCFv4.2' >> temp.vcf
+echo '##fileDate=2020-01-01' >> temp.vcf
+echo '##reference=GRCh38' >> temp.vcf
+echo '##contig=<ID=chrM,length=16569>' >> temp.vcf
+echo '##INFO=<ID=MitoTIP_Score,Number=1,Type=String,Description="MitoTIP MitoTIP_Score">' >> temp.vcf
+echo '##INFO=<ID=MitoTIP_Quartile,Number=1,Type=String,Description="MitoTIP Quartile">' >> temp.vcf
+echo '##INFO=<ID=MitoTIP_Count,Number=1,Type=String,Description="MitoTIP Count">' >> temp.vcf
+echo '##INFO=<ID=MitoTIP_Percentage,Number=1,Type=String,Description="MitoTIP Percentage">' >> temp.vcf
+echo '##INFO=<ID=MitoTIP_Status,Number=1,Type=String,Description="MitoTIP Mitomap_Status">' >> temp.vcf
+echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> temp.vcf
+grep -v '^Position' mitotip_scores.txt | grep -v -P "\t:\t" | awk 'BEGIN {FS="\t";OFS="\t"} {print "chrM", $1, ".", $2, $3, ".", ".", "MitoTIP_Score=" $4 ";MitoTIP_Quartile=" $5 ";MitoTIP_Count=" $6 ";MitoTIP_Percentage=" $7 ";MitoTIP_Status=" $8}' >> temp.vcf
+
+perl ../convert2annovar.pl -format vcf4 temp.vcf > hg38_mitotip_20201110_convert2annovar.avinput
+python3 annovar/annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i temp.vcf -a hg38_mitotip_20201110_convert2annovar.avinput -o hg38_mitotip_20201110.txt
+perl ../index_annovar.pl hg38_mitotip_20201110.txt -outfile hg38_mitotip_20201110.txt.idx
+# If the *.txt has been copied by annovar to *.txt.idx and there is a *.txt.idx.idx, then do:
+mv hg38_mitotip_20201110.txt.idx.idx hg38_mitotip_20201110.txt.idx
+
+rm temp.vcf
+rm hg38_mitotip_20201110_convert2annovar.avinput
+
+# Annotate a sample using the new clinvar reference table. This is done for every sample.
+
+cd /my/sample/directory
+perl table_annovar.pl my_sample.vcf humandb/ -vcfinput -buildver hg38 \
+  -out my_sample_annotated -remove \
+  -protocol mitotip_20201110 \
+  -operation f -nastring . \
+  -arg -time
+
+perl table_annovar_ed.pl my_sample.vcf humandb/ -vcfinput -buildver hg38 \
+  -out my_sample_annotated2 -remove \
+  -protocol refGene,mitotip_20201110 \
+  -operation g,f -nastring . \
+  -arg -exonicsplicing,-time
+
+##########

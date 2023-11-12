@@ -1,0 +1,244 @@
+https://cadd.gs.washington.edu/news
+	April 11, 2020: Scores and scripts for CADD v1.6 released
+	May 26, 2020: Output of multiple annotation lines and SpliceAI tabix index in CADD GRCh37-v1.6
+	July 2, 2020: Fixed off-by-one error in MMSplice annotation for CADD GRCh37-v1.6 and GRCh38-v1.6
+	The CADD webserver and variant scoring will be offline on Oct 20 2020 due to file system maintenance.
+
+https://cadd.gs.washington.edu/download
+
+	Description	Link (Size)	Tabix Index (Size)
+	All possible SNVs of GRCh38/hg38	file (81G)	tabix index (2.6M)
+
+	https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz
+	https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz.tbi
+
+Debjani's examples of different cadd scores in different versions:
+	CHROM POS       END       ID          REF ALT Gene.refGene CADD_phred CADD_phred.1 Sample_Id CADD_web_GRCh38-v1.6 CADD_web_GRCh38-v1.5 CADD_web_GRCh38-v1.4
+	chr7  94413134  94413134  rs151256720 C   T   COL1A2       17.06      17.06        19W001572 33                   27.1                 33
+	chr19 11252534  11252534  .           C   T   DOCK6        18.5       18.5         19W001572 25.2                 25.5                 25
+	chr10 121902591 121902591 rs201853069 A   G   ATE1         21.4       21.4         19W001572 29                   29.1                 28.2
+
+cd annovar/humandb/temp_cadd_20201019
+
+	#rsync -vhe ssh https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz .
+	wget https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz.tbi
+
+	cat copy_file_from_cadd.pbs 
+		#!/bin/bash
+		#PBS -P a32
+		#PBS -q copyq
+		#PBS -l walltime=10:00:00
+		#PBS -l mem=1GB
+		#PBS -l other=gdata3
+		#PBS -lstorage=scratch/a32+gdata/jb96
+		#PBS -l wd
+		#PBS -N caddcopy
+		set -euo pipefail
+
+		# Run this job from login node gadi-dm.nci.org.au
+
+		wget https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz
+
+		# wget https://krishna.gs.washington.edu/download/CADD/v1.6/GRCh38/whole_genome_SNVs.tsv.gz.tbi
+
+	qsub copy_file_from_cadd.pbs # 12575396.gadi-pbs
+
+cd annovar/humandb/temp_cadd_20201019
+
+mv whole_genome_SNVs.tsv.gz hg38_cadd.tsv.gz
+mv whole_genome_SNVs.tsv.gz.tbi hg38_cadd.tsv.gz.tbi
+
+cd annovar/humandb/temp_cadd_20201019
+
+tabix hg38_cadd.tsv.gz 1 | head
+chrom	pos	ref	alt	RawScore	PHRED
+1	10001	T	A	0.702541	8.478
+1	10001	T	C	0.750954	8.921
+1	10001	T	G	0.719549	8.634
+
+https://cadd.gs.washington.edu/snv
+Chrom		1		1		1
+Pos		10001		10001		10001
+Ref		T		T		T
+Alt		A		C		G
+RawScore	0.702541	0.750954	0.719549
+PHRED		8.478		8.921		8.634
+
+##### For each chromosome, convert cadd to annovar
+
+tabix hg38_cadd.tsv.gz 1 | head
+1	10001	T	A	0.702541	8.478
+1	10001	T	C	0.750954	8.921
+1	10001	T	G	0.719549	8.634
+
+# What the CADD annovar file hg38_cadd.txt needs to look like:
+#Chr	Start	End	Ref	Alt	CADD_RawScore	CADD_PHRED
+1	10001	10001	T	A	0.702541	8.478
+1	10001	10001	T	C	0.750954	8.921
+1	10001	10001	T	G	0.719549	8.634
+
+echo -e "#Chr\tStart\tEnd\tRef\tAlt\t\CADD_RawScore\tCADD_PHRED" > hg38_cadd_chrom1.txt
+tabix hg38_cadd.tsv.gz 1 | awk 'BEGIN {FS="\t";OFS="\t"} {print "chr" $1, $2, $2, $3, $4, $5, $6}' >> hg38_cadd_chrom1.txt
+
+cat convert_cadd_to_annovar_reference_file.sh
+	#!/bin/bash
+	#PBS -P abcd
+	#PBS -q normal
+	#PBS -l walltime=12:00:00
+	#PBS -l mem=30G
+	#PBS -l ncpus=1
+	#PBS -l jobfs=2M
+	#PBS -N cadd
+	#PBS -lstorage=scratch/abcd+gdata/abcd
+	#PBS -m bea
+
+	set -euo pipefail
+
+	# chrom is an input parameter
+	# It is not prefixed by chr and thus chr must be added for hg38
+
+	indir=/my/directory/variant_calling_and_annotation_pipeline/reference_data/annovar/humandb/temp_cadd_20201019
+	infile="${indir}"/hg38_cadd.tsv.gz
+	outfile="${indir}"/hg38_cadd_chrom"${chrom}".txt
+
+	module load htslib/1.9
+
+	#echo -e "#Chr\tStart\tEnd\tRef\tAlt\tCADD_RawScore\tCADD_PHRED" > $outfile
+	echo 'tabix' $infile $chrom '| awk' 'BEGIN {FS="\t";OFS="\t"} {print "chr" $1, $2, $2, $3, $4, $5, $6}' '>' $outfile
+	tabix $infile $chrom | awk 'BEGIN {FS="\t";OFS="\t"} {print "chr" $1, $2, $2, $3, $4, $5, $6}' > $outfile
+	echo ''
+
+	echo 'Finished!'
+	echo ''
+
+qsub -N cadd1 -v chrom=1 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd2 -v chrom=2 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd3 -v chrom=3 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd4 -v chrom=4 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd5 -v chrom=5 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd6 -v chrom=6 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd7 -v chrom=7 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd8 -v chrom=8 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd9 -v chrom=9 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd10 -v chrom=10 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd11 -v chrom=11 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd12 -v chrom=12 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd13 -v chrom=13 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd14 -v chrom=14 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd15 -v chrom=15 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd16 -v chrom=16 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd17 -v chrom=17 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd18 -v chrom=18 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd19 -v chrom=19 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd20 -v chrom=20 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd21 -v chrom=21 convert_cadd_to_annovar_reference_file.sh
+qsub -N cadd22 -v chrom=22 convert_cadd_to_annovar_reference_file.sh
+qsub -N caddX -v chrom=X convert_cadd_to_annovar_reference_file.sh
+qsub -N caddY -v chrom=Y convert_cadd_to_annovar_reference_file.sh
+# qsub -N caddM -v chrom=M convert_cadd_to_annovar_reference_file.sh # There are no M variants
+
+cat create_cadd_annovar_reference_file.sh
+
+# echo -e "#Chr\tStart\tEnd\tRef\tAlt\tCADD_RawScore\tCADD_PHRED" > temp_hdr.txt
+
+cat hg38_cadd_chrom1.txt hg38_cadd_chrom2.txt hg38_cadd_chrom3.txt hg38_cadd_chrom4.txt hg38_cadd_chrom5.txt hg38_cadd_chrom6.txt hg38_cadd_chrom7.txt hg38_cadd_chrom8.txt hg38_cadd_chrom9.txt hg38_cadd_chrom10.txt hg38_cadd_chrom11.txt hg38_cadd_chrom12.txt hg38_cadd_chrom13.txt hg38_cadd_chrom14.txt hg38_cadd_chrom15.txt hg38_cadd_chrom16.txt hg38_cadd_chrom17.txt hg38_cadd_chrom18.txt hg38_cadd_chrom19.txt hg38_cadd_chrom20.txt hg38_cadd_chrom21.txt hg38_cadd_chrom22.txt hg38_cadd_chromX.txt hg38_cadd_chromY.txt >  hg38_cadd_v1p6.txt
+
+cat create_cadd_annovar_reference_file.sh
+	#!/bin/bash
+	#PBS -P abcd
+	#PBS -q normal
+	#PBS -l walltime=20:00:00
+	#PBS -l mem=190G
+	#PBS -l ncpus=1
+	#PBS -l jobfs=2M
+	#PBS -N cadd
+	#PBS -lstorage=scratch/abcd+gdata/abcd
+	#PBS -m bea
+
+	set -euo pipefail
+
+	d=/my/directory/variant_calling_and_annotation_pipeline/reference_data/annovar/humandb/temp_cadd_20201019
+
+	echo -e "#Chr\tStart\tEnd\tRef\tAlt\tCADD_RawScore\tCADD_PHRED" > $d/temp_hdr.txt
+
+	echo 'cat to' $d'/hg38_cadd_v1p6.txt'
+	cat $d/temp_hdr.txt $d/hg38_cadd_chrom1.txt $d/hg38_cadd_chrom2.txt $d/hg38_cadd_chrom3.txt $d/hg38_cadd_chrom4.txt $d/hg38_cadd_chrom5.txt $d/hg38_cadd_chrom6.txt $d/hg38_cadd_chrom7.txt $d/hg38_cadd_chrom8.txt $d/hg38_cadd_chrom9.txt $d/hg38_cadd_chrom10.txt $d/hg38_cadd_chrom11.txt $d/hg38_cadd_chrom12.txt $d/hg38_cadd_chrom13.txt $d/hg38_cadd_chrom14.txt $d/hg38_cadd_chrom15.txt $d/hg38_cadd_chrom16.txt $d/hg38_cadd_chrom17.txt $d/hg38_cadd_chrom18.txt $d/hg38_cadd_chrom19.txt $d/hg38_cadd_chrom20.txt $d/hg38_cadd_chrom21.txt $d/hg38_cadd_chrom22.txt $d/hg38_cadd_chromX.txt $d/hg38_cadd_chromY.txt > $d/hg38_cadd_v1p6.txt
+	echo ''
+
+	echo 'perl annovar/index_annovar.pl' $d'/hg38_cadd_v1p6.txt -outfile' $d'/hg38_cadd_v1p6.txt.idx --skipsort'
+	perl annovar/index_annovar.pl $d/hg38_cadd_v1p6.txt -outfile $d/hg38_cadd_v1p6.txt.idx --skipsort
+	echo ''
+
+	echo 'mv' $d'/hg38_cadd_v1p6.txt.idx.idx' $d'/hg38_cadd_v1p6.txt.idx'
+	mv $d/hg38_cadd_v1p6.txt.idx.idx $d/hg38_cadd_v1p6.txt.idx
+	echo ''
+
+	echo 'Finished!'
+	echo ''
+
+qsub create_cadd_annovar_reference_file.sh
+
+cd /g/data/jb96/software/annovar/humandb/temp_cadd_20201019
+ls -l hg38_cadd_v1p6*
+	-rw-r--r-- 1 emr913 ki97 380069529222 Oct 20 14:19 hg38_cadd_v1p6.txt
+	-rw-r--r-- 1 emr913 ki97    117642221 Oct 20 18:24 hg38_cadd_v1p6.txt.idx
+mv hg38_cadd_v1p6* ..
+
+# Now the hg38_cadd_v1p6 annovar database should be ready for use
+cd annovar/humandb
+head hg38_cadd_v1p6.txt
+#Chr	Start	End	Ref	Alt	CADD_RawScore	CADD_PHRED
+chr1	10001	10001	T	A	0.702541	8.478
+chr1	10001	10001	T	C	0.750954	8.921
+chr1	10001	10001	T	G	0.719549	8.634
+chr1	10002	10002	A	C	0.713993	8.583
+chr1	10002	10002	A	G	0.743661	8.854
+chr1	10002	10002	A	T	0.700507	8.460
+chr1	10003	10003	A	C	0.714485	8.588
+chr1	10003	10003	A	G	0.744152	8.859
+chr1	10003	10003	A	T	0.700999	8.464
+chr1	10004	10004	C	A	0.564539	7.164
+
+########## Test that it works:
+
+
+Debjani's examples of different cadd scores in different versions:
+CHROM POS       END       ID          REF ALT Gene.refGene CADD_phred CADD_phred.1 Sample_Id CADD_web_GRCh38-v1.6 CADD_web_GRCh38-v1.5 CADD_web_GRCh38-v1.4
+chr7  94413134  94413134  rs151256720 C   T   COL1A2       17.06      17.06        19W001572 33                   27.1                 33
+chr10 121902591 121902591 rs201853069 A   G   ATE1         21.4       21.4         19W001572 29                   29.1                 28.2
+chr19 11252534  11252534  .           C   T   DOCK6        18.5       18.5         19W001572 25.2                 25.5                 25
+cd /g/data/a32/quarterly_x1_10TB/WGS/BAM/AGHA/AGHA_4/code
+
+cat temp_input2.vcf
+##fileformat=VCFv4.1
+##fileDate=2020-10-19
+#CHROM POS ID REF ALT QUAL FILTER INFO
+chr7 94413134 . C T 807.6 PASS .
+chr10 121902591 rs201853069 A G 807.6 PASS .
+chr19 11252534 . C T 448.6 PASS .
+
+annovar/table_annovar_ed.pl temp_input2.vcf /g/data/jb96/software/annovar/humandb/ -vcfinput -buildver hg38 \
+  -out temp_output2 -remove \
+  -protocol cadd_v1p6 \
+  -operation f -nastring . \
+  -arg -time
+
+cat temp_output2.hg38_multianno.vcf
+##fileformat=VCFv4.1
+##fileDate=2020-10-19
+##INFO=<ID=ANNOVAR_DATE,Number=1,Type=String,Description="Flag the start of ANNOVAR annotation for one alternative allele">
+##INFO=<ID=CADD_RawScore,Number=.,Type=String,Description="CADD_RawScore annotation provided by ANNOVAR">
+##INFO=<ID=CADD_PHRED,Number=.,Type=String,Description="CADD_PHRED annotation provided by ANNOVAR">
+##INFO=<ID=VARIANT_TYPE,Number=.,Type=String,Description="VARIANT_TYPE annotation provided by ANNOVAR_EDDIE">
+##INFO=<ID=ALLELE_END,Number=0,Type=Flag,Description="Flag the end of ANNOVAR annotation for one alternative allele">
+#CHROM POS ID REF ALT QUAL FILTER INFO
+chr7 94413134 . C T 807.6 PASS .;ANNOVAR_DATE=2018-04-16;CADD_RawScore=5.054945;CADD_PHRED=33;VARIANT_TYPE=;ALLELE_END
+chr10 121902591 rs201853069 A G 807.6 PASS .;ANNOVAR_DATE=2018-04-16;CADD_RawScore=4.240296;CADD_PHRED=29.0;VARIANT_TYPE=;ALLELE_END
+chr19 11252534 . C T 448.6 PASS .;ANNOVAR_DATE=2018-04-16;CADD_RawScore=3.658724;CADD_PHRED=25.2;VARIANT_TYPE=;ALLELE_END
+ 
+cat temp_output2.hg38_multianno.txt
+Chr Start End Ref Alt CADD_RawScore CADD_PHRED Otherinfo
+chr7 94413134 94413134 C T 5.054945 33 . 807.6 . chr7 94413134 . C T 807.6 PASS .
+chr10 121902591 121902591 A G 4.240296 29.0 . 807.6 . chr10 121902591 rs201853069 A G 807.6 PASS .
+chr19 11252534 11252534 C T 3.658724 25.2 . 448.6 . chr19 11252534 . C T 448.6 PASS .
+

@@ -1,0 +1,180 @@
+#!/bin/bash
+set -euo pipefail
+# mictro 23/9/21
+# Manipulate EHRF data for use with annovar and SV annotation
+# EHRF is a region file for regulatory information - downloaded
+# from Ensemble.
+# NOTE - the data is 1-based
+# Annovar software requires 0-based for region data for "unknown" databases
+# Our SV annotation scripts require 1-based data
+# So there will be 2 versions produced for each genome (1-based & 0-based)
+
+
+################################
+# Download information
+################################
+#EHRF - regulatory regions
+#
+#Used for annovar (where it should be converted to 0-based)
+#
+#Used for SVs (1-based)
+#
+#The data is 1-based
+#
+#Separate downloads for grch37 & hg38
+#
+#http://ftp.ensembl.org/pub/grch37/release-104/regulation/homo_sapiens/homo_sapiens.GRCh37.Regulatory_Build.regulatory_features.20201218.gff.gz
+#
+#http://ftp.ensembl.org/pub/grch37/release-104/regulation/homo_sapiens/README
+#
+#http://ftp.ensembl.org/pub/grch37/release-104/regulation/homo_sapiens/CHECKSUMS
+#
+#Should probably be copied to References_and_Databases first?? (NO - confirmed not there)
+#
+#hg38:
+#
+#http://ftp.ensembl.org/pub/release-104/regulation/homo_sapiens/homo_sapiens.GRCh38.Regulatory_Build.regulatory_features.20210107.gff.gz
+#
+#http://ftp.ensembl.org/pub/release-104/regulation/homo_sapiens/README
+#
+#http://ftp.ensembl.org/pub/release-104/regulation/homo_sapiens/CHECKSUMS
+#
+#
+#...:g/data/jb96/software/annovar/humandb/tmp$ while read f ; do
+#> wget $f
+#> done <<EOF
+#> http://ftp.ensembl.org/pub/grch37/release-104/regulation/homo_sapiens/homo_sapiens.GRCh37.Regulatory_Build.regulatory_features.20201218.gff.gz
+#> http://ftp.ensembl.org/pub/grch37/release-104/regulation/homo_sapiens/README
+#> http://ftp.ensembl.org/pub/grch37/release-104/regulation/homo_sapiens/CHECKSUMS
+#> EOF
+#
+#...:g/data/jb96/software/annovar/humandb/tmp$ mv CHECKSUMS{,_grch37}
+#...:g/data/jb96/software/annovar/humandb/tmp$ mv README{,_grch37}
+#...:g/data/jb96/software/annovar/humandb/tmp$ ls
+#CHECKSUMS_grch37                                                          prev_ver_FANTOM
+#homo_sapiens.GRCh37.Regulatory_Build.regulatory_features.20201218.gff.gz  README_grch37
+#...:g/data/jb96/software/annovar/humandb/tmp$
+#
+#contents of .gff file like:
+#
+#GL000191.1	Regulatory_Build	open_chromatin_region	101295	101509	.	.	.	ID=open_chromatin_region:ENSR00002093585;bound_end=101509;bound_start=101295;description=Open chromatin region;feature_type=Open chromatin
+#GL000191.1	Regulatory_Build	open_chromatin_region	24940	25470	.	.	.	ID=open_chromatin_region:ENSR00002093576;bound_end=25470;bound_start=24940;description=Open chromatin region;feature_type=Open chromatin
+#GL000191.1	Regulatory_Build	open_chromatin_region	34437	34739	.	.	.	ID=open_chromatin_region:ENSR00002093578;bound_end=34739;bound_start=34437;description=Open chromatin region;feature_type=Open chromatin
+#
+#goal is to get output like (but with different version number
+#==> hg38_EHRF_r99_regions.txt <==
+#EHRFr99	1	9801	10400	CTCF Binding Site
+#EHRFr99	1	13401	13600	CTCF Binding Site
+#EHRFr99	1	15401	16600	CTCF Binding Site
+#EHRFr99	1	16103	16451	TF binding site
+#
+
+
+################################
+# Code to manipulate data for our annotation use
+################################
+
+# Assumes the data has been downloaded to $humandb/tmp
+d=annovar/humandb/tmp
+cd $d
+# The current version (104) does not include any "chr" prefix.
+# This is not needed by annovar, but SV code expects "chr".
+#TODO - the user should check that they have the correct version number
+ver=104
+in_zip_19=homo_sapiens.GRCh37.Regulatory_Build.regulatory_features.20201218.gff.gz
+in_zip_38=homo_sapiens.GRCh38.Regulatory_Build.regulatory_features.20210107.gff.gz
+out_SV_19=hg19_EHRF_r${ver}_chr.txt
+out_annovar_19=hg19_EHRF_r${ver}_regions.txt
+out_SV_38=hg38_EHRF_r${ver}_chr.txt
+out_annovar_38=hg38_EHRF_r${ver}_regions.txt
+
+col_1_str=EHRFr104  # same for both (annovar ignores this col & uses filename)
+sv_header="chrom\tstart\tend\tfeature_type"
+# GRCh37
+# annovar - 0-based
+zcat $in_zip_19 | awk -v col_1_str=$col_1_str '
+    BEGIN {
+        FS = "\t"
+        OFS = "\t"
+        # EHRF includes some chr that we are not interested in (GL../KI..)
+        # They also do not include M/MT - but we will allow them in future
+        for (i=1; i<=22; ++i)
+            chrs[i]++
+        chrs["X"]++
+        chrs["Y"]++
+        chrs["M"]++
+        chrs["MT"]++
+    }
+    {
+        # decrement start pos by 1 to make 0-based
+        if ($1 in chrs)
+            print col_1_str, $1, --$4, $5, $3
+    }' > $out_annovar_19
+
+# SV - 1-based
+# first col is chr
+zcat $in_zip_19 | awk -v hdr=$sv_header '
+    BEGIN {
+        FS = "\t"
+        OFS = "\t"
+        # EHRF includes some chr that we are not interested in (GL../KI..)
+        # They also do not include M/MT - but we will allow them in future
+        for (i=1; i<=22; ++i)
+            chrs[i]++
+        chrs["X"]++
+        chrs["Y"]++
+        chrs["M"]++
+        chrs["MT"]++
+        # print header
+        print hdr
+    }
+    {
+        if ($1 in chrs)
+            print $1, $4, $5, $3
+    }' > $out_SV_19
+
+# GRCh38
+# annovar - 0-based
+zcat $in_zip_38 | awk -v col_1_str=$col_1_str '
+    BEGIN {
+        FS = "\t"
+        OFS = "\t"
+        # EHRF includes some chr that we are not interested in (GL../KI..)
+        # They also do not include M/MT - but we will allow them in future
+        for (i=1; i<=22; ++i)
+            chrs[i]++
+        chrs["X"]++
+        chrs["Y"]++
+        chrs["M"]++
+        chrs["MT"]++
+    }
+    {
+        # decrement start pos by 1 to make 0-based
+        if ($1 in chrs)
+            print col_1_str, $1, --$4, $5, $3
+    }' > $out_annovar_38
+
+# SV - 1-based
+# first col is chr
+zcat $in_zip_38 | awk -v hdr=$sv_header '
+    BEGIN {
+        FS = "\t"
+        OFS = "\t"
+        # EHRF includes some chr that we are not interested in (GL../KI..)
+        # They also do not include M/MT - but we will allow them in future
+        for (i=1; i<=22; ++i)
+            chrs[i]++
+        chrs["X"]++
+        chrs["Y"]++
+        chrs["M"]++
+        chrs["MT"]++
+        # print header
+        print hdr
+    }
+    {
+        if ($1 in chrs)
+            # add "chr" prefix
+            print "chr" $1, $4, $5, $3
+    }' > $out_SV_38
+
+echo "Finished" > /dev/stderr

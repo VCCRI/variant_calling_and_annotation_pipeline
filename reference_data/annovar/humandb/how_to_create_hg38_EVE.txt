@@ -1,0 +1,187 @@
+Frazer J, Notin P, Dias M, Gomez A, Min JK, Brock K, Gal Y, Marks DS.
+Disease variant prediction with deep generative models of evolutionary data.
+Nature. 2021 Nov;599(7883):91-95. doi: 10.1038/s41586-021-04043-8. Epub 2021 Oct 27. Erratum in: Nature. 2022 Jan;601(7892):E7. PMID: 34707284.
+
+download EVE_all_data.zip
+unzip EVE_all_data.zip
+
+There are 2951 vcf_files_missense_mutations/*_HUMAN.vcf files.
+Here is some data in vcf_files_missense_mutations/ZEB1_HUMAN.vcf.
+
+##fileformat=VCFv4.2
+##fileDate=20211103
+##source=EVEmodel
+##reference=GRCh38
+##phasing=none
+##INFO=<ID=EVE,Number=1,Type=Float,Description="Score from EVE model">
+##INFO=<ID=EnsTranscript,Number=1,Type=String,Description="Pipe-separated list of Ensembl transcript IDs for this protein genomic position">
+##INFO=<ID=RevStr,Number=1,Type=String,Description="Boolean for whether protein is coded on reverse/negative strand (True) or not (False)">
+##INFO=<ID=ProtMut,Number=1,Type=String,Description="String formatted as: [UNIPROT_ACCESSION_NUMBER]_[WILDTYPE_AA][AA_POSITION][VARIANT_AA]">
+##INFO=<ID=Class10,Number=1,Type=String,Description="Classification (Benign, Uncertain, or Pathogenic) when setting 10% as uncertain">
+##INFO=<ID=Class20,Number=1,Type=String,Description="Classification (Benign, Uncertain, or Pathogenic) when setting 20% as uncertain">
+##INFO=<ID=Class25,Number=1,Type=String,Description="Classification (Benign, Uncertain, or Pathogenic) when setting 25% as uncertain">
+##INFO=<ID=Class30,Number=1,Type=String,Description="Classification (Benign, Uncertain, or Pathogenic) when setting 30% as uncertain">
+##INFO=<ID=Class40,Number=1,Type=String,Description="Classification (Benign, Uncertain, or Pathogenic) when setting 40% as uncertain">
+##INFO=<ID=Class50,Number=1,Type=String,Description="Classification (Benign, Uncertain, or Pathogenic) when setting 50% as uncertain">
+##INFO=<ID=Class60,Number=1,Type=String,Description="Classification (Benign, Uncertain, or Pathogenic) when setting 60% as uncertain">
+##INFO=<ID=Class70,Number=1,Type=String,Description="Classification (Benign, Uncertain, or Pathogenic) when setting 70% as uncertain">
+##INFO=<ID=Class75,Number=1,Type=String,Description="Classification (Benign, Uncertain, or Pathogenic) when setting 75% as uncertain">
+##INFO=<ID=Class80,Number=1,Type=String,Description="Classification (Benign, Uncertain, or Pathogenic) when setting 80% as uncertain">
+##INFO=<ID=Class90,Number=1,Type=String,Description="Classification (Benign, Uncertain, or Pathogenic) when setting 90% as uncertain">
+#CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO
+10      31319289        .       AAC     GCA     .       .       EVE=0.2059782197462892;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19A;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     GCC     .       .       EVE=0.2059782197462892;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19A;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     GCG     .       .       EVE=0.2059782197462892;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19A;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     GCT     .       .       EVE=0.2059782197462892;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19A;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     TGC     .       .       EVE=0.5759161702535245;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19C;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     TGT     .       .       EVE=0.5759161702535245;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19C;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     GAC     .       .       EVE=0.5454063274144724;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19D;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     GAT     .       .       EVE=0.5454063274144724;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19D;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     GAA     .       .       EVE=0.4512297415970365;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19E;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     GAG     .       .       EVE=0.4512297415970365;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19E;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     TTC     .       .       EVE=0.6580819503117925;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19F;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     TTT     .       .       EVE=0.6580819503117925;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19F;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     GGA     .       .       EVE=0.6125144147417679;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19G;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     GGC     .       .       EVE=0.6125144147417679;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19G;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     GGG     .       .       EVE=0.6125144147417679;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19G;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     GGT     .       .       EVE=0.6125144147417679;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19G;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31319289        .       AAC     CAC     .       .       EVE=0.4701091400627915;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_N19H;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+...
+10      31461039        .       ACA     GCA     .       .       EVE=0.6224173129184379;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_T21A;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31461039        .       ACA     GCC     .       .       EVE=0.6224173129184379;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_T21A;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31461039        .       ACA     GCG     .       .       EVE=0.6224173129184379;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_T21A;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31461039        .       ACA     GCT     .       .       EVE=0.6224173129184379;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_T21A;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31461039        .       ACA     TGC     .       .       EVE=0.7627405604940691;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_T21C;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31461039        .       ACA     TGT     .       .       EVE=0.7627405604940691;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_T21C;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31461039        .       ACA     GAC     .       .       EVE=0.6677144106465589;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_T21D;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31461039        .       ACA     GAT     .       .       EVE=0.6677144106465589;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_T21D;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31461039        .       ACA     GAA     .       .       EVE=0.6301081371137534;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_T21E;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+10      31461039        .       ACA     GAG     .       .       EVE=0.6301081371137534;EnsTranscript=ENST00000320985|;RevStr=False;ProtMut=P37275_T21E;Class10=Uncertain;Class20=Uncertain;Class25=Uncertain;Class30=Uncertain;>
+
+# Show that vt normalize can adjust the vcf coordinates to be ready for annotation.
+
+nano temp_hdr.txt
+##fileformat=VCFv4.2
+##fileDate=20211103
+##source=EVEmodel
+##reference=GRCh38
+##phasing=none
+##INFO=<ID=EVE,Number=1,Type=Float,Description="Score from EVE model">
+##INFO=<ID=GENE,Number=1,Type=String,Description="Gene name">
+##contig=<ID=chr1,length=248956422>
+##contig=<ID=chr2,length=242193529>
+##contig=<ID=chr3,length=198295559>
+##contig=<ID=chr4,length=190214555>
+##contig=<ID=chr5,length=181538259>
+##contig=<ID=chr6,length=170805979>
+##contig=<ID=chr7,length=159345973>
+##contig=<ID=chr8,length=145138636>
+##contig=<ID=chr9,length=138394717>
+##contig=<ID=chr10,length=133797422>
+##contig=<ID=chr11,length=135086622>
+##contig=<ID=chr12,length=133275309>
+##contig=<ID=chr13,length=114364328>
+##contig=<ID=chr14,length=107043718>
+##contig=<ID=chr15,length=101991189>
+##contig=<ID=chr16,length=90338345>
+##contig=<ID=chr17,length=83257441>
+##contig=<ID=chr18,length=80373285>
+##contig=<ID=chr19,length=58617616>
+##contig=<ID=chr20,length=64444167>
+##contig=<ID=chr21,length=46709983>
+##contig=<ID=chr22,length=50818468>
+##contig=<ID=chrX,length=156040895>
+##contig=<ID=chrY,length=57227415>
+##contig=<ID=chrM,length=16569>
+#CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO
+
+cd annovar/humandb/temp_eve
+infile=vcf_files_missense_mutations/ZEB1_HUMAN.vcf
+outfile=temp_ZEB1_HUMAN.vcf
+outfile2=temp_ZEB1_HUMAN_normalize.vcf
+outfile3=temp_ZEB1_HUMAN_normalize_rmvSomeInfo.vcf
+gene=ZEB1
+grep -v '^#' $infile | awk -v gene="$gene" 'BEGIN {FS="\t";OFS="\t"} {split($8,arr,";"); print "chr"$1,$2,$3,$4,$5,$6,$7,arr[1]";GENE="gene}' | cat temp_hdr.txt - > $outfile
+bgzip -f $outfile
+tabix -p vcf "${outfile}".gz
+/g/data/jb96/software/vt/vt normalize -r /g/data/jb96/References_and_Databases/hg38.noalt.decoy.bwa/GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna -o $outfile2 "${outfile}".gz
+bgzip -dc "${outfile}".gz | cut -d';' -f1-2 > $outfile3
+# Conclusion: vt normalize works fine on this data
+
+# Make sure this data can turn into an annovar table
+perl convert2annovar.pl -format vcf4 $outfile3 > temp_ZEB1_HUMAN_convert2annovar.avinput
+python3 annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i $outfile3 -a temp_ZEB1_HUMAN_convert2annovar.avinput -o temp_ZEB1_HUMAN.txt -p EVE_
+mv $outfile3 hg38_ZEB1_HUMAN.vcf
+mv temp_ZEB1_HUMAN_convert2annovar.avinput hg38_ZEB1_HUMAN_convert2annovar.avinput
+mv temp_ZEB1_HUMAN.txt hg38_ZEB1_HUMAN.txt
+perl index_annovar.pl hg38_ZEB1_HUMAN.txt -outfile hg38_ZEB1_HUMAN.txt.idx
+mv hg38_ZEB1_HUMAN.txt.idx.idx hg38_ZEB1_HUMAN.txt.idx
+
+# Test the annovar annotation table by annotating with it
+cp hg38_ZEB1_HUMAN.txt.idx ../hg38_EVE.txt.idx
+cp hg38_ZEB1_HUMAN.txt ../hg38_EVE.txt
+cp temp_hdr.txt test_vcf.vcf
+nano test_vcf.vcf
+chr2	86790793	.	CGG	TGC	100	PASS	AC=1
+chr2	86788548	.	CG	TA	100	PASS	AC=2
+chr10	31319289	.	AA	TG	100	PASS	AC=3
+chr10	31319289	.	AAC	TGT	100	PASS	AC=4
+chr10	31319289	.	A	G	100	PASS	AC=5
+chr10	31527200	.	G	C	100	PASS	AC=6
+chr10	31527200	.	GC	CG	100	PASS	AC=7
+chr10	31527200	.	GC	CT	100	PASS	AC=8
+annovar/table_annovar_ed.pl test_vcf.vcf annovar/humandb/ -vcfinput -buildver hg38 \
+    -out test_vcf_output -remove \
+    -protocol EVE \
+    -operation f -nastring . \
+    -arg -time
+
+# Reformat all EVE gene vcf files ready to be converted to an annovar table
+ls -l annovar/humandb/temp_eve/vcf_files_missense_mutations/*_HUMAN.vcf | wc -l # 2951
+cat step1_reformat_eve_vcfs.sh
+#!/bin/bash
+module load htslib
+indir=annovar/humandb/temp_eve/vcf_files_missense_mutations
+outdir=annovar/humandb/temp_eve/temp_vcf_files_missense_mutations
+counter=0
+for infile in "${indir}"/*.vcf; do
+  counter=$(( counter + 1 ))
+  echo 'Processing' $counter $infile
+  infile_basename=$(basename $infile)
+  IFS='_' read -r -a array <<< "$infile_basename"
+  gene="${array[0]}"
+  outfile="${outdir}"/temp_"${gene}"_HUMAN.vcf
+  outfile2="${outdir}"/temp_"${gene}"_HUMAN_normalize.vcf
+  outfile3="${outdir}"/temp_"${gene}"_HUMAN_normalize_rmvSomeInfo.vcf
+  grep -v '^#' $infile | awk -v gene="$gene" 'BEGIN {FS="\t";OFS="\t"} {split($8,arr,";"); print "chr"$1,$2,$3,$4,$5,$6,$7,arr[1]";GENE="gene}' | sort -k1,1V -k2,2V -k4,4V -k5,5V | cat temp_hdr.txt - > $outfile
+  bgzip -f $outfile
+  tabix -p vcf "${outfile}".gz
+  vt normalize -r GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna -o $outfile2 "${outfile}".gz
+  cat $outfile2 | cut -d';' -f1-2 | grep -v '^#' > $outfile3
+done
+
+# Concatenate all the EVE files into one big vcf file
+cat step2_cat.pbs
+#!/bin/bash
+#PBS -P abcd
+#PBS -q normal
+#PBS -l walltime=20:00:00
+#PBS -l mem=32G
+#PBS -l ncpus=1
+#PBS -l jobfs=32G
+#PBS -N cat
+#PBS -lstorage=scratch/abcd+gdata/abcd
+#noPBS -m bea
+outfile3=annovar/humandb/temp_eve/temp_EVE_normalize_rmvSomeInfo.vcf
+cat annovar/humandb/temp_eve/temp_vcf_files_missense_mutations/temp_*_HUMAN_normalize_rmvSomeInfo.vcf | sort -k1,1V -k2,2V -k4,4V -k5,5V | cat annovar/humandb/temp_eve/temp_hdr.txt - > $outfile3
+qsub step2_cat.pbs
+
+# Convert the large vcf file that now contains all EVE genes into an annovar annotation table
+perl convert2annovar.pl -format vcf4 $outfile3 > temp_EVE_convert2annovar.avinput
+python3 annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i $outfile3 -a temp_EVE_convert2annovar.avinput -o temp_EVE.txt -p EVE_
+mv $outfile3 hg38_EVE.vcf
+mv temp_EVE_convert2annovar.avinput hg38_EVE_convert2annovar.avinput
+mv temp_EVE.txt hg38_EVE.txt
+perl index_annovar.pl hg38_EVE.txt -outfile hg38_EVE.txt.idx
+mv hg38_EVE.txt.idx.idx hg38_EVE.txt.idx
+

@@ -1,0 +1,7 @@
+DCM	sample1	.	sample1
+DCM	sample2	.	sample2
+DCM	sample3	.	sample3
+CHD	family4	pedigree4	sample41	sample42	sample43
+CHD	family5	pedigree5	sample51	sample52	sample53
+CHD	family6	pedigree6	sample61	sample62
+CHD	family7	pedigree7	sample71	sample72	sample73	sample74	sample75

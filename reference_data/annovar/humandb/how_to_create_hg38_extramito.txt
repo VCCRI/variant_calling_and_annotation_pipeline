@@ -1,0 +1,31 @@
+:>temp.vcf
+echo '##fileformat=VCFv4.2' >> temp.vcf
+echo '##fileDate=2020-01-01' >> temp.vcf
+echo '##reference=GRCh38' >> temp.vcf
+echo '##contig=<ID=chrM,length=16569>' >> temp.vcf
+echo '##INFO=<ID=extra_mito_vars_consequence,Number=1,Type=String,Description="Extra mitochondrial variants - consequence">' >> temp.vcf
+echo '##INFO=<ID=extra_mito_vars_comment,Number=1,Type=String,Description="Extra mitochondrial variants - Finsterer j et al. The heart in m.3243A>G carriers Herz 2020 Jun; 45(4):356-361">' >> temp.vcf
+echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> temp.vcf
+echo -e 'chrM\t3243\t.\tA\tG\t.\t.\textra_mito_vars_consequence=Possibly_pathogenic;extra_mito_vars_comment=Myocardial_abnormalities_are_much_more_frequent_than_arrhythmias_or_conduction_defects._All_symptomatic_and_asymptomatic_m.3243A>G_carriers_should_be_systematically_investigated_for_cardiac_disease.' >> temp.vcf
+
+perl ../convert2annovar.pl -format vcf4 temp.vcf > hg38_extramito_convert2annovar.avinput
+
+module load python3/3.7.4
+python3 annovar/annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i temp.vcf -a hg38_extramito_convert2annovar.avinput -o hg38_extramito.txt
+
+perl ../index_annovar.pl hg38_extramito.txt -outfile hg38_extramito.txt.idx
+mv hg38_extramito.txt.idx.idx hg38_extramito.txt.idx
+
+cp hg38_extramito.txt hg19_extramito.txt
+cp hg38_extramito.txt.idx hg19_extramito.txt.idx
+
+###
+
+annovar/table_annovar.pl test_M_3243_clinvvar_20201010.HelixMTdb.MitImpact.mitotip.hg38_multianno.vcf annovar/humandb/ -vcfinput -buildver hg38 \
+  -out test_M_3243_clinvvar_20201010.HelixMTdb.MitImpact.mitotip.mitomap.extra -remove \
+  -protocol extramito \
+  -operation f -nastring . \
+  -arg -time
+
+
+

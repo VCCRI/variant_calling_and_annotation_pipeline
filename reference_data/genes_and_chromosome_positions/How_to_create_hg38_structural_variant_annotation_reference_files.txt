@@ -1,0 +1,539 @@
+
+Various reference files are used to annotate structural variants.
+In general, if a structural variant overlaps in part an entry in the reference file, then the variant is annotated with that entry of the reference file.
+Here is how the GRCh38/hg38 reference files were created.
+
+The annotations are:
+
+Any overlap with UCSC GRCh38 RefSeq CDS exons
+Any overlap with EHRFr99 (Ensemble Human Regulatory Features)
+At least 70% overlap with gnomAD-SV
+At least 70% overlap with DGV (Database of Genomic Variants)
+Does the SV left breakend fall in a segmental duplication region
+Does the SV right breakend fall in a segmental duplication region
+Any overlap with splice sites in dbscSNV (https://watermark.silverchair.com/gku1206.pdf, Jian et al. 2014, In silico prediction of splice-altering single nucleotide variants in the human genome, for 'Ada' and 'RF' scores >= 0.6 as suggested at https://blog.goldenhelix.com/looking-beyond-the-exons-splice-altering-variants/)
+Any overlap with UCSC RefSeq entire gene (to know which gene the dbscSNV entry may belong to).
+
+########## RefSeq CDSexons ##########
+
+From UCSC tables, download RefSeq genes.
+The downloaded file contains one line per transcript.
+The multiple exons in a transcript are contained in the comma-delimited fields of start and end.
+It used to be necessary to join the RefSeq table to another table in order to get the gene name, but I think that is no longer necessary.
+
+head UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20200219.txt
+#chrom	strand	txStart	txEnd	cdsStart	cdsEnd	exonCount	exonStarts	exonEnds	name2
+chr1	-	67092164	67134970	67093579	67127240	9	67092164,67096251,67103237,67111576,67115351,67125751,67127165,67131141,67134929,	67093604,67096321,67103382,67111644,67115464,67125909,67127257,67131227,67134970,	C1orf141
+chr1	-	67092164	67134970	67093004	67127240	8	67092164,67095234,67096251,67115351,67125751,67127165,67131141,67134929,	67093604,67095421,67096321,67115464,67125909,67127257,67131227,67134970,	C1orf141
+chr1	-	67092164	67134970	67134970	67134970	10	67092164,67096251,67103237,67111576,67113613,67115351,67125751,67127165,67131141,67134929,	67093604,67096321,67103382,67111644,67113756,67115464,67125909,67127257,67131227,67134970,	C1orf141
+
+python3 convert_UCSC_genes_list_to_exon_intron_bed_format_for_GRCh38.py \
+  -i UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20200219.txt \
+  -out_genes UCSC_GRCh38_GenesAndGenePredictions_genes_RefSeq_20200219.txt \
+  -out_exons UCSC_GRCh38_GenesAndGenePredictions_exons_RefSeq_20200219.txt \
+  -out_introns UCSC_GRCh38_GenesAndGenePredictions_introns_RefSeq_20200219.txt \
+  -out_cds UCSC_GRCh38_GenesAndGenePredictions_CDS_RefSeq_20200219.txt \
+  -out_cdsexons UCSC_GRCh38_GenesAndGenePredictions_CDSexons_RefSeq_20200219.txt \
+  -out_utr5 UCSC_GRCh38_GenesAndGenePredictions_UTR5_RefSeq_20200219.txt \
+  -out_utr3 UCSC_GRCh38_GenesAndGenePredictions_UTR3_RefSeq_20200219.txt
+
+Final reference file: UCSC_GRCh38_GenesAndGenePredictions_CDSexons_RefSeq_20200219.txt
+chr1	67096251	67096321	C1orf141	-
+chr1	67103237	67103382	C1orf141	-
+chr1	67111576	67111644	C1orf141	-
+chr1	67115351	67115464	C1orf141	-
+chr1	67125751	67125909	C1orf141	-
+chr1    201293941       201294045       PKP1    +
+chr1    201313165       201313560       PKP1    +
+chr1    201316552       201316697       PKP1    +
+chr1    201317571       201317779       PKP1    +
+chr1    201318617       201318795       PKP1    +
+
+########## EHRFr99 - ensembl - Regulatory Build hg38 set, release 99 ##########
+
+wget ftp://ftp.ensembl.org/pub/release-99/regulation/homo_sapiens/homo_sapiens.GRCh38.Regulatory_Build.regulatory_features.20190329.gff.gz
+
+bgzip -d homo_sapiens.GRCh38.Regulatory_Build.regulatory_features.20190329.gff.gz
+GL000008.2	Regulatory_Build	open_chromatin_region	103826	104072	.	.	.	ID=open_chromatin_region:ENSR00000898744;bound_end=104072;bound_start=103826;description=Open chromatin region;feature_type=Open chromatin
+GL000008.2	Regulatory_Build	open_chromatin_region	106256	106509	.	.	.	ID=open_chromatin_region:ENSR00000898745;bound_end=106509;bound_start=106256;description=Open chromatin region;feature_type=Open chromatin
+GL000008.2	Regulatory_Build	open_chromatin_region	112834	113287	.	.	.	ID=open_chromatin_region:ENSR00000898746;bound_end=113287;bound_start=112834;description=Open chromatin region;feature_type=Open chromatin
+GL000008.2	Regulatory_Build	open_chromatin_region	134012	134338	.	.	.	ID=open_chromatin_region:ENSR00000898747;bound_end=134338;bound_start=134012;description=Open chromatin region;feature_type=Open chromatin
+
+cut -d$'\t' -f1 homo_sapiens.GRCh38.Regulatory_Build.regulatory_features.20190329.gff | sort | uniq # the non-standard chromosomes start with GL or KI
+
+echo -e "chrom\tstart\tend\tfeature_type" > temp_hdr.txt
+
+grep -v '^GL\|^KI' homo_sapiens.GRCh38.Regulatory_Build.regulatory_features.20190329.gff | awk 'BEGIN {FS="\t";OFS="\t"} {print "chr" $1, $4, $5, $2 }' | cat temp_hdr.txt - > /g/data/jb96/software/annovar/humandb/hg38_EHRF_r99_chr.txt
+
+Final reference file: hg38_EHRF_r99_chr.txt
+chrom	start	end	feature_type
+chr2	113379801	113380200	Promoter Flanking Region
+chr18	32661402	32662400	Promoter Flanking Region
+chr6	84137802	84141600	Promoter Flanking Region
+chr3	41288801	41289200	CTCF Binding Site
+chr16	32052001	32052400	CTCF Binding Site
+
+########## gnomAD-SV ##########
+
+hg38_gnomAD-SV_short_ordered.txt has been obtained from gnomAD-SV and perhaps processed.
+
+head -n 1 hg38_gnomAD-SV_short_ordered.txt
+gnSV	chr1	10000	20000	gnomAD_v2_DUP_1_1	10000	DUP	20175	0.9395080208778381	21474	1217	9479	41	0.955695986747742	NA	NA	NA	BAF,RDdepth	NA	NA	NA	NA	NA	NA	NA	NA	OR4F5	NA	NA	True
+
+cut -d$'\t' -f2- hg38_gnomAD-SV_short_ordered.txt > hg38_gnomAD-SV_short_ordered_chr.txt
+
+head -n 1 hg38_gnomAD-SV_short_ordered_chr.txt
+chr1	10000	20000	gnomAD_v2_DUP_1_1	10000	DUP	20175	0.9395080208778381	21474	1217	9479	41	0.955695986747742	NA	NA	NA	BAF,RD	depth	NA	NA	NA	NA	NA	NA	NA	NA	OR4F5	NA	NA	True
+
+The fields of hg38_gnomAD-SV_short_ordered_chr.txt appear to be:
+	CHROM
+	START
+	END
+	NAME
+	SVLEN
+	SVTYPE
+	AC
+	AF
+	AN
+	N_HET
+	N_HOMALT
+	N_HOMREF
+	POPMAX_AF
+	CPX_INTERVALS
+	CPX_TYPE
+	STRANDS
+	EVIDENCE
+	ALGORITHMS
+	SOURCE
+	PROTEIN_CODING__COPY_GAIN
+	PROTEIN_CODING__DUP_LOF
+	PROTEIN_CODING__DUP_PARTIAL
+	PROTEIN_CODING__INTRONIC
+	PROTEIN_CODING__INV_SPAN
+	PROTEIN_CODING__LOF
+	PROTEIN_CODING__MSV_EXON_OVR
+	PROTEIN_CODING__NEAREST_TSS
+	PROTEIN_CODING__PROMOTER
+	PROTEIN_CODING__UTR
+	PROTEIN_CODING__INTERGENIC
+
+Final reference file: hg38_gnomAD-SV_short_ordered_chr.txt
+
+########## DGV - Database of Genomic Variants ##########
+
+cd annovar/humandb
+wget http://dgv.tcag.ca/dgv/docs/DGV.GS.hg38.gff3
+mv DGV.GS.hg38.gff3 DGV_Gold_Standard_Variants_release_20160516_DGV.GS.hg38.gff3
+wc -l DGV_Gold_Standard_Variants_release_20160516_DGV.GS.hg38.gff3 # 113556
+
+head DGV_Gold_Standard_Variants_release_20160516_DGV.GS.hg38.gff3
+r_end=86542;outer_end=106394;inner_rank=7;num_variants=42;variants=essv75141,essv63480,essv65410,essv33662,essv36301,essv45662,essv66858,essv83994,essv57788,nssv14768,nssv14790,nssv14784,essv68486,essv42378,essv43633,essv44330,essv55201,essv47291,essv53480,essv59014,nssv14781,essv61349,essv75636,essv78929,essv36569,essv48828,essv82243,essv77852,essv56500,nssv14788,nssv14770,nssv18113,nssv14771,nssv18117,nssv14780,nssv14789,nssv18103,essv76745,nssv14776,nssv14766,nssv14775,nssv14791;num_studies=2;Studies=Perry2008,Conrad2009;num_platforms=2;Platforms=NimbleGen42M,AgilentCustom_015685+015686+244K;number_of_algorithms=2;algorithms=GADA,ADM2;num_samples=41;samples=NA07037,NA12828,NA11894,NA19221,NA19147,NA18552,NA12489,NA18860,NA12155,NA18909,NA18907,NA12749,NA19132,NA18508,NA12872,NA18511,NA19114,NA19190,NA12802,NA18504,NA15510,NA18537,NA10863,NA19144,NA11993,NA12239,NA19173,NA06985,NA19240,NA18858,NA12004,NA12414,NA18972,NA18853,NA18975,NA19108,NA19099,NA18505,NA18861,NA19129,NA12776;Frequency=61.194%;PopulationSummary=African 21:European 15:Asian 4:Admixed 0:Mexican 0:MiddleEast 0:Unknown 1:NativeAmerican 0:NorthAmerican 0:Oceania 0:SouthAmerican 0:Turkish 0;Number_of_unique_samples_tested=67
+chr1	CNV	copy_number_variation_region	10499	10499	.	.	.	ID=gssvG10;Name=gssvG10;variant_type=CNV;variant_sub_type=Gain;outer_start=10499;inner_start=10499;inner_end=177368;outer_end=177368;inner_rank=7;num_variants=4;variants=essv34520,essv52357,essv60177,nssv14762;num_studies=2;Studies=Perry2008,Conrad2009;num_platforms=2;Platforms=NimbleGen42M,AgilentCustom_015685+015686+244K;number_of_algorithms=2;algorithms=GADA,ADM2;num_samples=4;samples=NA18502,NA18523,NA07029,NA12006;Frequency=5.97015%;PopulationSummary=African 2:European 2:Asian 0:Admixed 0:Mexican 0:MiddleEast 0:Unknown 0:NativeAmerican 0:NorthAmerican 0:Oceania 0:SouthAmerican 0:Turkish 0;Number_of_unique_samples_tested=67
+chr1	CNV	copy_number_variation_region	10499	177368	.	.	.	ID=gssvG10;Name=gssvG10;variant_type=CNV;variant_sub_type=Gain;outer_start=10499;inner_start=10499;inner_end=177368;outer_end=177368;inner_rank=7;num_variants=4;variants=essv34520,essv52357,essv60177,nssv14762;num_studies=2;Studies=Perry2008,Conrad2009;num_platforms=2;Platforms=NimbleGen42M,AgilentCustom_015685+015686+244K;number_of_algorithms=2;algorithms=GADA,ADM2;num_samples=4;samples=NA18502,NA18523,NA07029,NA12006;Frequency=5.97015%;PopulationSummary=African 2:European 2:Asian 0:Admixed 0:Mexican 0:MiddleEast 0:Unknown 0:NativeAmerican 0:NorthAmerican 0:Oceania 0:SouthAmerican 0:Turkish 0;Number_of_unique_samples_tested=67
+
+sed -e 's/;/\t/g' DGV_Gold_Standard_Variants_release_20160516_DGV.GS.hg38.gff3 | awk 'BEGIN {FS="\t";OFS=""} {print $1 "\t" $13 "\t" $16 "\t" $2 "_" $12 "_" $21}' | sed 's/variant_sub_type=//g' | sed 's/outer_start=//g' | sed 's/outer_end=//g' | sed 's/Studies=//g' | sort -k1,1 -k2,2n -k3,3n | uniq > hg38_DGVgoldStdVars_r20160516.txt
+
+Final reference file: hg38_DGVgoldStdVars_r20160516.txt
+chr1	10001	106394	CNV_Gain_Perry2008,Conrad2009
+chr1	10499	177368	CNV_Gain_Perry2008,Conrad2009
+chr1	21064	35983	CNV_Gain_Perry2008,Sudmant2013
+chr1	46501	71800	CNV_Gain_Perry2008,Dogan2014
+
+########## Segmental Duplications ##########
+
+wget wget http://humanparalogy.gs.washington.edu/build38/data/GRCh38GenomicSuperDup.tab
+
+Final reference file: annovar/humandb/GRCh38GenomicSuperDup.tab
+chr1	10169	37148	chr1:180723	0	+	chr1	180723	207666	26943	1	1000	N/A	N/A	N/A	N/A	align_both/0014/both0071547	27025	30	128	26897	26628	269	164	105	0.989998884633974	0.988895903739741	0.0100683956884972	0.0100742688854825
+chr1	180723	207666	chr1:10169	0	+	chr1	10169	37148	26979	1	1000	N/A	N/A	N/A	N/A	align_both/0014/both0071547	27025	30	128	26897	26628	269	164	105	0.989998884633974	0.988895903739741	0.0100683956884972	0.0100742688854825
+chr1	88000	121417	chr1:265774	0	+	chr1	265774	297956	32182	2	1000	N/A	N/A	N/A	N/A	align_both/0014/both0071548	33449	25	1299	32150	31941	209	133	76	0.993499222395023	0.992727272727273	0.00652911487615718	0.00653207256400941
+
+
+########## dbscSNV ##########
+
+annovar/humandb/hg38_splice_dbscSNV_1.txt was obtained.
+#Chr	Start	End	Ref	Alt	dbscSNV_ada	dbscSNV_rf
+chr1	924946	924946	A	C	0.00764482882370293	0.03
+chr1	924946	924946	A	G	0.00764482882370293	0.032
+chr1	924946	924946	A	T	0.00692000194525311	0.03
+chr1	924947	924947	A	C	0.00430955476585136	0.04
+chr1	924947	924947	A	G	0.00430955476585136	0.04
+chr1	924947	924947	A	T	0.00430955476585136	0.042
+
+We will only look for any overlap with dbscSNV (https://watermark.silverchair.com/gku1206.pdf, Jian et al. 2014, In silico prediction of splice-altering single nucleotide variants in the human genome), for 'Ada' and 'RF' scores >= 0.6 as suggested at https://blog.goldenhelix.com/looking-beyond-the-exons-splice-altering-variants/)
+
+awk 'BEGIN {FS="'t";OFS="\t"} {if (($6 >= 0.6) || ($7 >\ 0.6)) {print $0}}' hg38_splice_dbscSNV_1.txt > hg38_splice_dbscSNV_1_0p6.txt
+
+Final reference file: annovar/humandb/hg38_splice_dbscSNV_1_0p6.txt
+
+#Chr	Start	End	Ref	Alt	dbscSNV_ada	dbscSNV_rf
+chr1	925799	925799	A	G	0.987833212454089	0.616
+chr1	925799	925799	A	T	0.976226938154799	0.578
+chr1	925800	925800	G	A	0.999648482686128	0.966
+chr1	925800	925800	G	C	0.99987823379821	0.948
+chr1	925800	925800	G	T	0.999642320272986	0.968
+
+########## RefSeq genes ##########
+
+download UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20200901.txt from UCSC tables
+
+cut -d$'\t' -f3-11,13 UCSC_GRCh38_RefSeq_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20200901.txt > temp_RefSeq_20200901.txt
+
+python3 convert_UCSC_genes_list_to_exon_intron_bed_format_for_GRCh38.py \
+  -i temp_RefSeq_20200901.txt \
+  -out_genes UCSC_GRCh38_GenesAndGenePredictions_genes_RefSeq_20200901.txt \
+  -out_exons UCSC_GRCh38_GenesAndGenePredictions_exons_RefSeq_20200901.txt \
+  -out_introns UCSC_GRCh38_GenesAndGenePredictions_introns_RefSeq_20200901.txt \
+  -out_cds UCSC_GRCh38_GenesAndGenePredictions_CDS_RefSeq_20200901.txt \
+  -out_cdsexons UCSC_GRCh38_GenesAndGenePredictions_CDSexons_RefSeq_20200901.txt \
+  -out_utr5 UCSC_GRCh38_GenesAndGenePredictions_UTR5_RefSeq_20200901.txt \
+  -out_utr3 UCSC_GRCh38_GenesAndGenePredictions_UTR3_RefSeq_20200901.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_genes_RefSeq_20200901.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_genes_RefSeq_20200901.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_exons_RefSeq_20200901.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_exons_RefSeq_20200901.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_introns_RefSeq_20200901.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_introns_RefSeq_20200901.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_CDS_RefSeq_20200901.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_CDS_RefSeq_20200901.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_CDSexons_RefSeq_20200901.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_CDSexons_RefSeq_20200901.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_UTR5_RefSeq_20200901.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_UTR5_RefSeq_20200901.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_UTR3_RefSeq_20200901.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_UTR3_RefSeq_20200901.txt
+
+chr1    11873   14409   DDX11L1 +
+chr1    14361   29370   WASH7P  -
+chr1    17368   17436   MIR6859-1	-
+chr1    29925   31295   MIR1302-2HG     +
+chr1    30365   30503   MIR1302-2	+
+
+########## Gencode genes ##########
+
+download UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_wgEncodeGencodeCompV34_20200907.txt from UCSC tables
+
+cut -d$'\t' -f3-11,13 UCSC_GRCh38_wgEncodeGencodeCompV34_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20200907.txt > temp_wgEncodeGencodeCompV34_20200907.txt
+
+python3 convert_UCSC_genes_list_to_exon_intron_bed_format_for_GRCh38.py \
+  -i temp_wgEncodeGencodeCompV34_20200907.txt \
+  -out_genes UCSC_GRCh38_GenesAndGenePredictions_genes_wgEncodeGencodeCompV34_20200907.txt \
+  -out_exons UCSC_GRCh38_GenesAndGenePredictions_exons_wgEncodeGencodeCompV34_20200907.txt \
+  -out_introns UCSC_GRCh38_GenesAndGenePredictions_introns_wgEncodeGencodeCompV34_20200907.txt \
+  -out_cds UCSC_GRCh38_GenesAndGenePredictions_CDS_wgEncodeGencodeCompV34_20200907.txt \
+  -out_cdsexons UCSC_GRCh38_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV34_20200907.txt \
+  -out_utr5 UCSC_GRCh38_GenesAndGenePredictions_UTR5_wgEncodeGencodeCompV34_20200907.txt \
+  -out_utr3 UCSC_GRCh38_GenesAndGenePredictions_UTR3_wgEncodeGencodeCompV34_20200907.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_genes_wgEncodeGencodeCompV34_20200907.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_genes_wgEncodeGencodeCompV34_20200907.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_exons_wgEncodeGencodeCompV34_20200907.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_exons_wgEncodeGencodeCompV34_20200907.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_introns_wgEncodeGencodeCompV34_20200907.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_introns_wgEncodeGencodeCompV34_20200907.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_CDS_wgEncodeGencodeCompV34_20200907.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_CDS_wgEncodeGencodeCompV34_20200907.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV34_20200907.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV34_20200907.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_UTR5_wgEncodeGencodeCompV34_20200907.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_UTR5_wgEncodeGencodeCompV34_20200907.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_UTR3_wgEncodeGencodeCompV34_20200907.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_UTR3_wgEncodeGencodeCompV34_20200907.txt
+
+########## Recent creation of reference files for genes, transcripts and introns, merging RefSeq and Gencode
+########## Make a new version of the genes and introns reference data, include Refseq and Gencode
+
+#####
+download UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20211116.txt from UCSC tables
+
+sort -k13,13 UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20211116.txt | awk 'BEGIN {FS="\t";OFS="\t"; curr_gene=""; curr_num_exons=0} {if (NR>1) {gene=$13; num_exons=$9; if (gene==curr_gene) {if (num_exons>curr_num_exons) {curr_num_exons=num_exons}} else {if (curr_gene!="") {print curr_gene, curr_num_exons}; curr_gene=gene; curr_num_exons=num_exons}}} END {if (curr_gene!="") {print curr_gene, curr_num_exons}}' > UCSC_GRCh38_GenesAndGenePredictions_numExons_RefSeq_20211116.txt
+
+cut -d$'\t' -f3-11,13 UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20211116.txt > temp_RefSeq_20211116.txt
+
+python3 convert_UCSC_genes_list_to_exon_intron_bed_format_for_GRCh38.py \
+  -i temp_RefSeq_20211116.txt \
+  -out_genes UCSC_GRCh38_GenesAndGenePredictions_genes_RefSeq_20211116.txt \
+  -out_exons UCSC_GRCh38_GenesAndGenePredictions_exons_RefSeq_20211116.txt \
+  -out_introns UCSC_GRCh38_GenesAndGenePredictions_introns_RefSeq_20211116.txt \
+  -out_cds UCSC_GRCh38_GenesAndGenePredictions_CDS_RefSeq_20211116.txt \
+  -out_cdsexons UCSC_GRCh38_GenesAndGenePredictions_CDSexons_RefSeq_20211116.txt \
+  -out_utr5 UCSC_GRCh38_GenesAndGenePredictions_UTR5_RefSeq_20211116.txt \
+  -out_utr3 UCSC_GRCh38_GenesAndGenePredictions_UTR3_RefSeq_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_genes_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_genes_RefSeq_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_exons_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_exons_RefSeq_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_introns_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_introns_RefSeq_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_CDS_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_CDS_RefSeq_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_CDSexons_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_CDSexons_RefSeq_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_UTR5_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_UTR5_RefSeq_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_UTR3_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_UTR3_RefSeq_20211116.txt
+
+#####
+download UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_wgEncodeGencodeCompV38_20211116.txt from UCSC tables
+
+sort -k13,13 UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_wgEncodeGencodeCompV38_20211116.txt | awk 'BEGIN {FS="\t";OFS="\t"; curr_gene=""; curr_num_exons=0} {if (NR>1) {gene=$13; num_exons=$9; if (gene==curr_gene) {if (num_exons>curr_num_exons) {curr_num_exons=num_exons}} else {if (curr_gene!="") {print curr_gene, curr_num_exons}; curr_gene=gene; curr_num_exons=num_exons}}} END {if (curr_gene!="") {print curr_gene, curr_num_exons}}' > UCSC_GRCh38_GenesAndGenePredictions_numExons_wgEncodeGencodeCompV38_20211116.txt
+
+cut -d$'\t' -f3-11,13 UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_wgEncodeGencodeCompV38_20211116.txt > temp_wgEncodeGencodeCompV38_20211116.txt
+
+python3 convert_UCSC_genes_list_to_exon_intron_bed_format_for_GRCh38.py \
+  -i temp_wgEncodeGencodeCompV38_20211116.txt \
+  -out_genes UCSC_GRCh38_GenesAndGenePredictions_genes_wgEncodeGencodeCompV38_20211116.txt \
+  -out_exons UCSC_GRCh38_GenesAndGenePredictions_exons_wgEncodeGencodeCompV38_20211116.txt \
+  -out_introns UCSC_GRCh38_GenesAndGenePredictions_introns_wgEncodeGencodeCompV38_20211116.txt \
+  -out_cds UCSC_GRCh38_GenesAndGenePredictions_CDS_wgEncodeGencodeCompV38_20211116.txt \
+  -out_cdsexons UCSC_GRCh38_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV38_20211116.txt \
+  -out_utr5 UCSC_GRCh38_GenesAndGenePredictions_UTR5_wgEncodeGencodeCompV38_20211116.txt \
+  -out_utr3 UCSC_GRCh38_GenesAndGenePredictions_UTR3_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_genes_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_genes_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_exons_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_exons_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_introns_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_introns_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_CDS_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_CDS_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_UTR5_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_UTR5_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh38_GenesAndGenePredictions_UTR3_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh38_GenesAndGenePredictions_UTR3_wgEncodeGencodeCompV38_20211116.txt
+
+#####
+download UCSC_GRCh37_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20211116.txt from UCSC tables
+
+sort -k13,13 UCSC_GRCh37_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20211116.txt | awk 'BEGIN {FS="\t";OFS="\t"; curr_gene=""; curr_num_exons=0} {if (NR>1) {gene=$13; num_exons=$9; if (gene==curr_gene) {if (num_exons>curr_num_exons) {curr_num_exons=num_exons}} else {if (curr_gene!="") {print curr_gene, curr_num_exons}; curr_gene=gene; curr_num_exons=num_exons}}} END {if (curr_gene!="") {print curr_gene, curr_num_exons}}' > UCSC_GRCh37_GenesAndGenePredictions_numExons_RefSeq_20211116.txt
+
+cut -d$'\t' -f3-11,13 UCSC_GRCh37_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20211116.txt > temp_RefSeq_20211116.txt
+
+python3 convert_UCSC_genes_list_to_exon_intron_bed_format_for_GRCh38.py \
+  -i temp_RefSeq_20211116.txt \
+  -out_genes UCSC_GRCh37_GenesAndGenePredictions_genes_RefSeq_20211116.txt \
+  -out_exons UCSC_GRCh37_GenesAndGenePredictions_exons_RefSeq_20211116.txt \
+  -out_introns UCSC_GRCh37_GenesAndGenePredictions_introns_RefSeq_20211116.txt \
+  -out_cds UCSC_GRCh37_GenesAndGenePredictions_CDS_RefSeq_20211116.txt \
+  -out_cdsexons UCSC_GRCh37_GenesAndGenePredictions_CDSexons_RefSeq_20211116.txt \
+  -out_utr5 UCSC_GRCh37_GenesAndGenePredictions_UTR5_RefSeq_20211116.txt \
+  -out_utr3 UCSC_GRCh37_GenesAndGenePredictions_UTR3_RefSeq_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_genes_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_genes_RefSeq_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_exons_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_exons_RefSeq_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_introns_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_introns_RefSeq_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_CDS_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_CDS_RefSeq_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_CDSexons_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_CDSexons_RefSeq_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_UTR5_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_UTR5_RefSeq_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_UTR3_RefSeq_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_UTR3_RefSeq_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_genes_RefSeq_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_genes_RefSeq_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_exons_RefSeq_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_exons_RefSeq_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_introns_RefSeq_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_introns_RefSeq_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_CDS_RefSeq_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_CDS_RefSeq_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_CDSexons_RefSeq_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_CDSexons_RefSeq_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_UTR5_RefSeq_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_UTR5_RefSeq_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_UTR5_RefSeq_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_UTR5_RefSeq_20211116.txt
+
+
+#####
+download UCSC_GRCh37_GenesAndGenePredictions_transcriptExonsOnOneLine_wgEncodeGencodeCompV38_20211116.txt from UCSC tables
+
+sort -k13,13 UCSC_GRCh37_GenesAndGenePredictions_transcriptExonsOnOneLine_wgEncodeGencodeCompV38_20211116.txt | awk 'BEGIN {FS="\t";OFS="\t"; curr_gene=""; curr_num_exons=0} {if (NR>1) {gene=$13; num_exons=$9; if (gene==curr_gene) {if (num_exons>curr_num_exons) {curr_num_exons=num_exons}} else {if (curr_gene!="") {print curr_gene, curr_num_exons}; curr_gene=gene; curr_num_exons=num_exons}}} END {if (curr_gene!="") {print curr_gene, curr_num_exons}}' > UCSC_GRCh37_GenesAndGenePredictions_numExons_wgEncodeGencodeCompV38_20211116.txt
+
+cut -d$'\t' -f3-11,13 UCSC_GRCh37_GenesAndGenePredictions_transcriptExonsOnOneLine_wgEncodeGencodeCompV38_20211116.txt > temp_wgEncodeGencodeCompV38_20211116.txt
+
+python3 convert_UCSC_genes_list_to_exon_intron_bed_format_for_GRCh38.py \
+  -i temp_wgEncodeGencodeCompV38_20211116.txt \
+  -out_genes UCSC_GRCh37_GenesAndGenePredictions_genes_wgEncodeGencodeCompV38_20211116.txt \
+  -out_exons UCSC_GRCh37_GenesAndGenePredictions_exons_wgEncodeGencodeCompV38_20211116.txt \
+  -out_introns UCSC_GRCh37_GenesAndGenePredictions_introns_wgEncodeGencodeCompV38_20211116.txt \
+  -out_cds UCSC_GRCh37_GenesAndGenePredictions_CDS_wgEncodeGencodeCompV38_20211116.txt \
+  -out_cdsexons UCSC_GRCh37_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV38_20211116.txt \
+  -out_utr5 UCSC_GRCh37_GenesAndGenePredictions_UTR5_wgEncodeGencodeCompV38_20211116.txt \
+  -out_utr3 UCSC_GRCh37_GenesAndGenePredictions_UTR3_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_genes_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_genes_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_exons_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_exons_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_introns_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_introns_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_CDS_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_CDS_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_UTR5_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_UTR5_wgEncodeGencodeCompV38_20211116.txt
+
+cp UCSC_GRCh37_GenesAndGenePredictions_UTR3_wgEncodeGencodeCompV38_20211116.txt temp.txt
+bedtools sort -i temp.txt | awk 'BEGIN {FS="\t";OFS="\t"} {if (($2!=0) && ($3!=0) && ($2<$3)) {print $0}}' | uniq > UCSC_GRCh37_GenesAndGenePredictions_UTR3_wgEncodeGencodeCompV38_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_genes_wgEncodeGencodeCompV38_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_genes_wgEncodeGencodeCompV38_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_exons_wgEncodeGencodeCompV38_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_exons_wgEncodeGencodeCompV38_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_introns_wgEncodeGencodeCompV38_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_introns_wgEncodeGencodeCompV38_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_CDS_wgEncodeGencodeCompV38_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_CDS_wgEncodeGencodeCompV38_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV38_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_CDSexons_wgEncodeGencodeCompV38_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_UTR5_wgEncodeGencodeCompV38_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_UTR5_wgEncodeGencodeCompV38_20211116.txt
+
+cut -c4- UCSC_GRCh37_GenesAndGenePredictions_UTR3_wgEncodeGencodeCompV38_20211116.txt > temp.txt
+mv temp.txt UCSC_GRCh37_GenesAndGenePredictions_UTR3_wgEncodeGencodeCompV38_20211116.txt
+
+
+#####
+cat UCSC_GRCh38_GenesAndGenePredictions_numExons_RefSeq_20211116.txt UCSC_GRCh38_GenesAndGenePredictions_numExons_wgEncodeGencodeCompV38_20211116.txt | awk 'BEGIN {FS="\t";OFS="\t"; curr_gene=""; curr_num_exons=0} {if (NR>1) {gene=$1; num_exons=$2; if (gene==curr_gene) {if (num_exons>curr_num_exons) {curr_num_exons=num_exons}} else {if (curr_gene!="") {print curr_gene, curr_num_exons}; curr_gene=gene; curr_num_exons=num_exons}}} END {if (curr_gene!="") {print curr_gene, curr_num_exons}}' > hg38_UCSC_GRCh38_GenesAndGenePredictions_numExons_RefSeq_and_Gencode_20211116.txt
+
+cat UCSC_GRCh38_GenesAndGenePredictions_genes_RefSeq_20211116.txt UCSC_GRCh38_GenesAndGenePredictions_genes_wgEncodeGencodeCompV38_20211116.txt | sort -k1,1V -k2,2V -k3,3V > temp1.bed
+
+R
+library(sqldf)
+data = read.table( "temp1.bed", sep="\t", header=FALSE, quote='"', comment.char="", row.names=NULL, stringsAsFactors=FALSE, colClasses=c("character") )
+colnames(data) = c("chrom", "start", "end", "gene", "strand")
+# If the same gene on the same chrom has + and - strand, just take the first one which will be +
+data2 = sqldf("select chrom, min(start), max(end), gene, strand from data group by chrom, gene")
+names(data2)[names(data2) == 'min(start)'] = 'start'
+names(data2)[names(data2) == 'max(end)'] = 'end'
+write.table( data2, file="temp5.txt", quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE )
+sqldf('select gene, chrom, count(*) from data2 group by gene, chrom having count(*)>1')
+quit()
+
+mv temp5.txt hg38_UCSC_GRCh38_GenesAndGenePredictions_genes_RefSeq_and_Gencode_20211116.bed
+
+
+#####
+cat UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20211116.txt UCSC_GRCh38_GenesAndGenePredictions_transcriptExonsOnOneLine_wgEncodeGencodeCompV38_20211116.txt | awk 'BEGIN {FS="\t";OFS="\t"} {print $3, $5, $6, $13, $4}' | sort -k1,1V -k2,2V -k3,3V -k4,4V -k5,5V | uniq > hg38_UCSC_GRCh38_GenesAndGenePredictions_transcripts_RefSeq_and_Gencode_20211116.bed
+
+
+#####
+cat UCSC_GRCh38_GenesAndGenePredictions_introns_RefSeq_20211116.txt UCSC_GRCh38_GenesAndGenePredictions_introns_wgEncodeGencodeCompV38_20211116.txt | sort -k1,1V -k2,2V -k3,3V -k4,4V -k5,5V > temp1.bed
+cp temp1.bed temp4.bed
+
+R
+library(sqldf)
+data = read.table( "temp4.bed", sep="\t", header=FALSE, quote='"', comment.char="", row.names=NULL, stringsAsFactors=FALSE, colClasses=c("character") )
+colnames(data) = c("chrom", "start", "end", "gene", "strand")
+data2 = sqldf("select chrom, start, end, gene, strand, count(*) from data group by chrom, start, end, gene, strand")
+names(data2)[names(data2) == 'count(*)'] = 'count'
+data3 = data2[with(data2, order(chrom, start, end, -count, gene, strand)), ]
+data4 = sqldf("select chrom, start, end, gene, strand from data3 group by chrom, start, end")
+write.table( data4, file="temp5.txt", quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE )
+quit()
+
+mv temp5.txt hg38_UCSC_GRCh38_GenesAndGenePredictions_introns_RefSeq_and_Gencode_20211116.bed
+
+
+#####
+cat UCSC_GRCh37_GenesAndGenePredictions_numExons_RefSeq_20211116.txt UCSC_GRCh37_GenesAndGenePredictions_numExons_wgEncodeGencodeCompV38_20211116.txt | awk 'BEGIN {FS="\t";OFS="\t"; curr_gene=""; curr_num_exons=0} {if (NR>1) {gene=$1; num_exons=$2; if (gene==curr_gene) {if (num_exons>curr_num_exons) {curr_num_exons=num_exons}} else {if (curr_gene!="") {print curr_gene, curr_num_exons}; curr_gene=gene; curr_num_exons=num_exons}}} END {if (curr_gene!="") {print curr_gene, curr_num_exons}}' > hg19_UCSC_GRCh37_GenesAndGenePredictions_numExons_RefSeq_and_Gencode_20211116.txt
+
+cat UCSC_GRCh37_GenesAndGenePredictions_genes_RefSeq_20211116.txt UCSC_GRCh37_GenesAndGenePredictions_genes_wgEncodeGencodeCompV38_20211116.txt | sort -k1,1V -k2,2V -k3,3V > temp1.bed
+
+R
+library(sqldf)
+data = read.table( "temp1.bed", sep="\t", header=FALSE, quote='"', comment.char="", row.names=NULL, stringsAsFactors=FALSE, colClasses=c("character") )
+colnames(data) = c("chrom", "start", "end", "gene", "strand")
+# If the same gene on the same chrom has + and - strand, just take the first one which will be +
+data2 = sqldf("select chrom, min(start), max(end), gene, strand from data group by chrom, gene")
+names(data2)[names(data2) == 'min(start)'] = 'start'
+names(data2)[names(data2) == 'max(end)'] = 'end'
+write.table( data2, file="temp5.txt", quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE )
+sqldf('select gene, chrom, count(*) from data2 group by gene, chrom having count(*)>1')
+quit()
+
+mv temp5.txt hg19_UCSC_GRCh37_GenesAndGenePredictions_genes_RefSeq_and_Gencode_20211116.bed
+
+
+#####
+cat UCSC_GRCh37_GenesAndGenePredictions_transcriptExonsOnOneLine_RefSeq_20211116.txt UCSC_GRCh37_GenesAndGenePredictions_transcriptExonsOnOneLine_wgEncodeGencodeCompV38_20211116.txt | awk 'BEGIN {FS="\t";OFS="\t"} {print $3, $5, $6, $13, $4}' | sort -k1,1V -k2,2V -k3,3V -k4,4V -k5,5V | uniq > hg19_UCSC_GRCh37_GenesAndGenePredictions_transcripts_RefSeq_and_Gencode_20211116.bed
+
+
+#####
+cat UCSC_GRCh37_GenesAndGenePredictions_introns_RefSeq_20211116.txt UCSC_GRCh37_GenesAndGenePredictions_introns_wgEncodeGencodeCompV38_20211116.txt | sort -k1,1V -k2,2V -k3,3V -k4,4V -k5,5V > temp1.bed
+cp temp1.bed temp4.bed
+
+R
+library(sqldf)
+data = read.table( "temp4.bed", sep="\t", header=FALSE, quote='"', comment.char="", row.names=NULL, stringsAsFactors=FALSE, colClasses=c("character") )
+colnames(data) = c("chrom", "start", "end", "gene", "strand")
+data2 = sqldf("select chrom, start, end, gene, strand, count(*) from data group by chrom, start, end, gene, strand")
+names(data2)[names(data2) == 'count(*)'] = 'count'
+data3 = data2[with(data2, order(chrom, start, end, -count, gene, strand)), ]
+data4 = sqldf("select chrom, start, end, gene, strand from data3 group by chrom, start, end")
+write.table( data4, file="temp5.txt", quote=FALSE, sep="\t", row.names=FALSE, col.names=FALSE )
+quit()
+
+mv temp5.txt hg19_UCSC_GRCh37_GenesAndGenePredictions_introns_RefSeq_and_Gencode_20211116.bed
+
+
+########## 

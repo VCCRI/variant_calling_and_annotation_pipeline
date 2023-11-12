@@ -1,0 +1,46 @@
+how hg38_genomicSuperDups.txt was created
+
+Previously used to download from University of Washington:
+wget http://humanparalogy.gs.washington.edu/build38/data/GRCh37GenomicSuperDup.tab
+However - this does not seem to be maintained any more (e.g. # of fields does not match what annovar expects - while UCSC does)
+
+Download from UCSC
+
+### NOTE ###
+Assume that we don't have to worry about whether the data is 0-based or 1-based, as we have downloaded it from UCSC & annovar has specific code that recognises this database.
+
+THE FILENAME MUST BE: hg38_genomicSuperDups.txt - as the annovar code looks for the exact string "genomicSuperDups"
+
+#########################
+
+Data like:
+#bin	chrom	chromStart	chromEnd	name	score	strand	otherChrom	otherStart	otherEnd	otherSize	uid	posBasesHit	testResult	verdict	chits	ccov	alignfile	alignL	indelN	indelS	alignB	matchB	mismatchB	transitionsB	transversionsB	fracMatch	fracMatchIndel	jcK	k2K
+2	chr1	83647856	83955427	chr7:76280701	0	+	chr7	76280701	76575579	159138663	2065	1000	N/A	N/A	N/A	N/A	align_both/0013/both065549	309508	441	16577	292931	288875	4056	2701	1355	0.986154	0.984671	0.0139757	0.0139921
+
+TODO: remove the header - as annovar does not expect headers in region files
+
+PROBLEM: # cols matches but pos columns are 2,3,4 & col 1 is bin
+TODO: look at latest version of annovar
+
+superdups leaves embedded "characters"  - equals \x3d and semi-colon \x3b
+
+genomicSuperDups=Score\x3d0.995656\x3bName\x3dchr5:180746946
+
+could get away with just removing these (which is what I think should happen in a post processing step)
+
+UCSC Table Browser download Instructions
+----------------------------------------
+clade: Mammal
+genome: Human
+assembly: Feb. 2009 (GRCh38/hg38)
+group: Repeats
+track: Segmental Dups
+table: genomicSuperDups
+region
+output format: all fields from selected table
+output filename  
+
+After downloaded, create copy of file without header
+e.g. awk 'NR>1' hg38_genomicSuperDups.txt_from_UCSC_no_header > hg38_genomicSuperDups.txt
+
+Ready to use (test first)

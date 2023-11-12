@@ -1,0 +1,30 @@
+# go to https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38
+# and check date last modified.  In this case 20220425
+version=20220425
+wget https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz
+wget https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz.md5
+# reformat md5sum file to remove ncbi path
+awk '{print $1 "  clinvar.vcf.gz" }' clinvar.vcf.gz.md5 > clinvar_${version}.vcf.gz.md5
+md5sum -c clinvar_${version}.vcf.gz.md5
+gunzip clinvar.vcf.gz
+mv clinvar.vcf hg38_clinvar_${version}.vcf
+rm clinvar_${version}.vcf.gz.md5
+
+sed -i 's/^MT/M/' hg38_clinvar_${version}.vcf
+sed -i 's/^/chr/' hg38_clinvar_${version}.vcf
+sed -i 's/^chr#/#/' hg38_clinvar_${version}.vcf
+
+perl convert2annovar.pl -format vcf4 hg38_clinvar_${version}.vcf > hg38_clinvar_${version}_convert2annovar.avinput
+
+python3 annovar/convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i hg38_clinvar_${version}.vcf -a hg38_clinvar_${version}_convert2annovar.avinput -o tmp_hg38_clinvar_${version}.txt -p CLINVAR${version}_
+
+perl index_annovar.pl tmp_hg38_clinvar_${version}.txt -outfile hg38_clinvar_${version}.txt
+
+rm tmp_hg38_clinvar_${version}.txt
+rm temp_hg38_clinvar_${version}*.vcf
+rm hg38_clinvar_${version}_convert2annovar.avinput
+rm clinvar.vcf.gz.md5
+
+chmod g+w hg38_clinvar_${version}*
+
+

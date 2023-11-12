@@ -1,0 +1,328 @@
+cd annovar/humandb/temp_mnv
+
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/genome/gnomad_mnv_genome_d1.tsv.bgz
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/genome/gnomad_mnv_genome_d2.tsv.bgz
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/genome/gnomad_mnv_genome_d3.tsv.bgz
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/genome/gnomad_mnv_genome_d4.tsv.bgz
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/genome/gnomad_mnv_genome_d5.tsv.bgz
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/genome/gnomad_mnv_genome_d6.tsv.bgz
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/genome/gnomad_mnv_genome_d7.tsv.bgz
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/genome/gnomad_mnv_genome_d8.tsv.bgz
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/genome/gnomad_mnv_genome_d9.tsv.bgz
+wget https://storage.googleapis.com/gcp-public-data--gnomad/release/2.1/mnv/genome/gnomad_mnv_genome_d10.tsv.bgz
+
+mv gnomad_mnv_genome_d1.tsv.bgz gnomad_mnv_genome_d1.tsv.gz
+mv gnomad_mnv_genome_d2.tsv.bgz gnomad_mnv_genome_d2.tsv.gz
+mv gnomad_mnv_genome_d3.tsv.bgz gnomad_mnv_genome_d3.tsv.gz
+mv gnomad_mnv_genome_d4.tsv.bgz gnomad_mnv_genome_d4.tsv.gz
+mv gnomad_mnv_genome_d5.tsv.bgz gnomad_mnv_genome_d5.tsv.gz
+mv gnomad_mnv_genome_d6.tsv.bgz gnomad_mnv_genome_d6.tsv.gz
+mv gnomad_mnv_genome_d7.tsv.bgz gnomad_mnv_genome_d7.tsv.gz
+mv gnomad_mnv_genome_d8.tsv.bgz gnomad_mnv_genome_d8.tsv.gz
+mv gnomad_mnv_genome_d9.tsv.bgz gnomad_mnv_genome_d9.tsv.gz
+mv gnomad_mnv_genome_d10.tsv.bgz gnomad_mnv_genome_d10.tsv.gz
+gunzip *.tsv.gz
+
+less -S gnomad_mnv_genome_d1.tsv.gz
+locus   refs    alts    distance        snp1    	snp2    	ac1     ac2     ac_mnv  ac1_adj ac2_adj ac_mnv_adj
+1:10247 T,A     C,T     1       	1-10247-T-C     1-10248-A-T     23      19      4       3       3       0
+1:14409 G,C     A,A     1       	1-14409-G-A     1-14410-C-A     1       1       1       1       1       1
+1:17928 T,C     A,A     1       	1-17928-T-A     1-17929-C-A     190     190     190     18      17      16
+1:23357 C,A     A,G     1       	1-23357-C-A     1-23358-A-G     326     326     326     46      48      46
+1:28592 T,T     G,G     1       	1-28592-T-G     1-28593-T-G     2008    2000    2000    25      19      19
+1:48327 C,A     A,T     1       	1-48327-C-A     1-48328-A-T     109     109     109     49      49      46
+
+less -S gnomad_mnv_genome_d2.tsv.gz
+locus   refs    alts    distance        snp1    snp2    	ac1     ac2     ac_mnv  ac1_adj ac2_adj ac_mnv_adj
+1:10334 T,A     A,C     2       1-10334-T-A     1-10336-A-C     28      17      6       1       2       0
+1:29291 T,C     C,G     2       1-29291-T-C     1-29293-C-G     1       1       1       1       1       1
+1:39602 G,T     A,C     2       1-39602-G-A     1-39604-T-C     253     257     253     1       1       1
+1:51859 C,C     G,T     2       1-51859-C-G     1-51861-C-T     18      19      18      10      11      10
+
+
+less -S gnomad_mnv_genome_d6.tsv.gz
+locus   	refs    alts    distance        snp1    	snp2    	ac1     ac2     ac_mnv  ac1_adj ac2_adj ac_mnv_adj
+1:49292 	G,T     A,C     6       	1-49292-G-A     1-49298-T-C     4       13081   2       2       10401   0
+1:251663        C,T     G,C     6       	1-251663-C-G    1-251669-T-C    5366    3       2       4413    2       2
+1:401372        C,C     T,T     6       	1-401372-C-T    1-401378-C-T    97      108     80      3       3       0
+1:404532        T,A     C,G     6       	1-404532-T-C    1-404538-A-G    145     141     141     13      10      9
+1:525037        G,G     T,T     6       	1-525037-G-T    1-525043-G-T    1813    180     1       1353    135     1
+
+less -S readme.md
+
+Columns in the `gnomad_mnv_genome_d{i}.tsv.bgz`
+ac1: allele count of snv1, before adj filtering
+ac2: allele count of snv2, before adj filtering
+ac_mnv: allele count of MNV, before adj filtering
+ac1_adj: allele count of snv1, after adj filtering
+ac2_adj: allele count of snv2, after adj filtering
+ac_mnv_adj: allele count of MNV, after adj filtering
+For example, when
+locus=22:16056126
+refs="G,C"
+alts="C,A" and
+d=2, 
+the MNV is GcC to CcA, when there is no SNP in the position 22:16056127.
+(c is the reference allele at position 22:16056127).
+(Caution: Since we did not explicitly call the MNVs consisting of more than 3 SNPs other than the coding region, we do not exclude the possibility that the MNV
+ is in reality part of larger substitution. For example above, we do not exclude the possibility that the MNV is actually part of GcC to CTA by this file alone
+. Users can visit the gnomAD browser for manual check.)
+(Also note that the tsv file is block zipped.)
+
+https://www.nature.com/articles/s41467-019-12438-5
+#
+In order to provide an overview of the functional impact of MNVs (Fig. 1b), 
+we examined all phased high-quality SNV pairs (i.e., SNV pairs that pass stringent filtering criteria; see the Methods section) 
+within 2 bp distance of each other across the 125,748 exome-sequenced individuals from our gnomAD 2.1 data set, 
+resulting in the discovery of 31,575 MNVs exist within the same codon. 
+#
+These findings come with the caveat that variants in repetitive regions will have higher error rates due to slippage and misalignment errors, 
+but we have reduced this risk by applying random forest filtering for individual sites, 
+as well as removing all the variants in low-complexity regions from our analysis (see the Methods section).
+#
+Methods
+MNV filtering
+In the gnomAD MNV analysis, variant pairs for which one or both of their components have low quality reads were filtered out. 
+Specifically, we only selected the variant sites that pass the Random Forest filtering, resulting in acceptance of 53.3% of the initial MNV candidates (Supplementary Fig. 12a). 
+We also filtered out variant sites that are classified as low-complexity regions (LCRs) identified with the symmetric DUST algorithm56 at a score threshold of 30, 
+and additionally applied adjusted threshold criteria (GQ ≥ 20, DP ≥ 10, and allele balance > 0.2 for heterozygote genotypes) for filtering individual variants (Supplementary Table 7). 
+For each MNV site, we annotated the number of alleles that appear as MNV, as well as the number of individuals carrying the MNV as a homozygous variant. 
+The distribution of MNV sites that contain homozygous MNVs is shown in Supplementary Fig. 13. We also collapsed the MNV patterns that are reverse complements of each other, 
+after observing that the number of MNVs are roughly symmetric (before collapsing, the ratio of each MNV pattern to its corresponding reverse complement pattern was mostly close to 1,
+ with 0.95 being the lowest and 1.10 being the highest for adjacent MNVs) (Supplementary Fig. 14). 
+All the MNV patterns in the main text and figures are equivalent to their reverse complement, and we do not distinguish them.
+
+https://gnomad.broadinstitute.org/variant/2-74699761-AC-GA?dataset=gnomad_r2_1
+				2-74699761-A-G					2-74699762-C-A
+				Exomes		Genomes		Total		Exomes		Genomes		Total
+	Filter			Pass		Pass		Pass				No variant		
+	Allele Count		1		1		2		1				1
+	Allele Number		251216		31404		282620		250882				250882
+	Allele Frequency	0.000003981	0.00003184	0.000007077	0.000003986			0.000003986
+
+https://gnomad.broadinstitute.org/variant/2-74699761-A-G?dataset=gnomad_r2_1
+				Exomes		Genomes		Total
+	Filter			Pass		Pass	
+	Allele Count		1		1		2
+	Allele Number		251216		31404		282620
+	Allele Frequency	0.000003981	0.00003184	0.000007077
+	Popmax Filtering AF	-		-
+	(95% confidence)
+	Number of homozygotes	0		0		0
+
+https://gnomad.broadinstitute.org/variant/2-74699762-C-A?dataset=gnomad_r2_1
+				Exomes		Genomes	Total
+	Filter			Pass			No variant	
+	Allele Count		1			1
+	Allele Number		250882			250882
+	Allele Frequency	0.000003986		0.000003986
+	Popmax Filtering AF	-
+	(95% confidence)		
+	Number of homozygotes	0			0
+
+cd annovar/humandb/temp_mnv
+
+head gnomad_mnv_genome_d1.tsv
+locus   refs    alts    distance        snp1    snp2    ac1     ac2     ac_mnv  ac1_adj ac2_adj ac_mnv_adj
+1:10247 T,A     C,T     1       1-10247-T-C     1-10248-A-T     23      19      4       3       3       0
+1:14409 G,C     A,A     1       1-14409-G-A     1-14410-C-A     1       1       1       1       1       1
+1:17928 T,C     A,A     1       1-17928-T-A     1-17929-C-A     190     190     190     18      17      16
+1:23357 C,A     A,G     1       1-23357-C-A     1-23358-A-G     326     326     326     46      48      46
+
+# Extract chrom pos ref alt ac_mnv ac_mnv_adj, then calculate calculated_AF_for_ac_mnv calculated_AF_for_ac_mnv_adj
+
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($1,a,":"); split($2,b,","); split($3,c,","); print a[1], a[2], b[1] b[2], c[1] c[2], $9, $12, $9/141456, $12/141456}}' gnomad_mnv_genome_d1.tsv > temp_gnomad_mnv_genome_d1.tsv
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($1,a,":"); split($2,b,","); split($3,c,","); print a[1], a[2], b[1] "N" b[2], c[1] "N" c[2], $9, $12, $9/141456, $12/141456}}' gnomad_mnv_genome_d2.tsv > temp_gnomad_mnv_genome_d2.tsv
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($1,a,":"); split($2,b,","); split($3,c,","); print a[1], a[2], b[1] "NN" b[2], c[1] "NN" c[2], $9, $12, $9/141456, $12/141456}}' gnomad_mnv_genome_d3.tsv > temp_gnomad_mnv_genome_d3.tsv
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($1,a,":"); split($2,b,","); split($3,c,","); print a[1], a[2], b[1] "NNN" b[2], c[1] "NNN" c[2], $9, $12, $9/141456, $12/141456}}' gnomad_mnv_genome_d4.tsv > temp_gnomad_mnv_genome_d4.tsv
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($1,a,":"); split($2,b,","); split($3,c,","); print a[1], a[2], b[1] "NNNN" b[2], c[1] "NNNN" c[2], $9, $12, $9/141456, $12/141456}}' gnomad_mnv_genome_d5.tsv > temp_gnomad_mnv_genome_d5.tsv
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($1,a,":"); split($2,b,","); split($3,c,","); print a[1], a[2], b[1] "NNNNN" b[2], c[1] "NNNNN" c[2], $9, $12, $9/141456, $12/141456}}' gnomad_mnv_genome_d6.tsv > temp_gnomad_mnv_genome_d6.tsv
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($1,a,":"); split($2,b,","); split($3,c,","); print a[1], a[2], b[1] "NNNNNN" b[2], c[1] "NNNNNN" c[2], $9, $12, $9/141456, $12/141456}}' gnomad_mnv_genome_d7.tsv > temp_gnomad_mnv_genome_d7.tsv
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($1,a,":"); split($2,b,","); split($3,c,","); print a[1], a[2], b[1] "NNNNNNN" b[2], c[1] "NNNNNNN" c[2], $9, $12, $9/141456, $12/141456}}' gnomad_mnv_genome_d8.tsv > temp_gnomad_mnv_genome_d8.tsv
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($1,a,":"); split($2,b,","); split($3,c,","); print a[1], a[2], b[1] "NNNNNNNN" b[2], c[1] "NNNNNNNN" c[2], $9, $12, $9/141456, $12/141456}}' gnomad_mnv_genome_d9.tsv > temp_gnomad_mnv_genome_d9.tsv
+awk 'BEGIN {FS="\t";OFS="\t"} {if (NR>1) {split($1,a,":"); split($2,b,","); split($3,c,","); print a[1], a[2], b[1] "NNNNNNNNN" b[2], c[1] "NNNNNNNNN" c[2], $9, $12, $9/141456, $12/141456}}' gnomad_mnv_genome_d10.tsv > temp_gnomad_mnv_genome_d10.tsv
+
+cat temp_gnomad_mnv_genome_d1.tsv temp_gnomad_mnv_genome_d2.tsv temp_gnomad_mnv_genome_d3.tsv temp_gnomad_mnv_genome_d4.tsv temp_gnomad_mnv_genome_d5.tsv temp_gnomad_mnv_genome_d6.tsv temp_gnomad_mnv_genome_d7.tsv temp_gnomad_mnv_genome_d8.tsv temp_gnomad_mnv_genome_d9.tsv temp_gnomad_mnv_genome_d10.tsv | sort -k1,1V -k2,2V -k3,3 -k4,4 | uniq > temp_gnomad_mnv_genome_d1to10.tsv
+
+cat fetch_seq_for_mnv.awk
+BEGIN {
+FS="\t";OFS="\t"
+}
+{
+fastq="/my/directory/References_and_Databases/hs37d5/hs37d5x.fa"
+#fastq="/my/directory/References_and_Databases/hg38.noalt.decoy.bwa/GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna"
+
+chrom=$1
+pos=$2
+end_pos=$2+length($3)-1
+ref1=substr($3,1,1)
+ref2=substr($3,length($3),1)
+alt1=substr($4,1,1)
+alt2=substr($4,length($3),1)
+
+cmd = "samtools faidx "fastq" "chrom":"pos"-"end_pos
+#result=system("date"); close("date")
+line=0
+ref_seq=""
+while ( ( cmd | getline result ) > 0 ) {
+  line=line+1
+  if (line==2) {
+    ref_seq=result
+  }
+}
+close(cmd);
+alt_subseq=substr(ref_seq,2,(length(ref_seq)-2))
+alt_seq=alt1""alt_subseq""alt2
+
+print $1, $2, ref_seq, alt_seq, $5, $6, $7, $8
+}
+
+# Fill in the reference sequence in REF and ALT, in between the 2 SNPs that are separated by a distance of 2 to 10 bp, for hg19.
+
+awk -f fetch_seq_for_mnv.awk temp_gnomad_mnv_genome_d1to10.tsv > temp_gnomad_mnv_genome_d1to10_refseq.tsv
+
+head temp_gnomad_mnv_genome_d1to10.tsv
+1	10247	TA	CT	4	0	2.82773e-05	0
+1	10247	TNNNNNNNNNA	CNNNNNNNNNC	1	0	7.06934e-06	0
+1	10248	ANNNNNNNNA	TNNNNNNNNC	1	0	7.06934e-06	0
+1	10250	ANNNNNNA	CNNNNNNC	21	2	0.000148456	1.41387e-05
+1	10327	TNNNNNNNNA	CNNNNNNNNC	5	0	3.53467e-05	0
+1	10327	TNNNNNNT	CNNNNNNA	5	0	3.53467e-05	0
+1	10334	TNA	ANC	6	0	4.2416e-05	0
+1	11014	GNNNNNNNG	ANNNNNNNA	35	2	0.000247427	1.41387e-05
+1	14409	GC	AA	1	1	7.06934e-06	7.06934e-06
+1	14464	ANNNNC	TNNNNT	69	58	0.000487784	0.000410021
+
+head temp_gnomad_mnv_genome_d1to10_refseq.tsv
+1	10247	TA	CT	4	0	2.82773e-05	0
+1	10247	TAAACCCTAAA	CAAACCCTAAC	1	0	7.06934e-06	0
+1	10248	AAACCCTAAA	TAACCCTAAC	1	0	7.06934e-06	0
+1	10250	ACCCTAAA	CCCCTAAC	21	2	0.000148456	1.41387e-05
+1	10327	TAACCCCTAA	CAACCCCTAC	5	0	3.53467e-05	0
+1	10327	TAACCCCT	CAACCCCA	5	0	3.53467e-05	0
+1	10334	TAA	AAC	6	0	4.2416e-05	0
+1	11014	GGGGTTGGG	AGGGTTGGA	35	2	0.000247427	1.41387e-05
+1	14409	GC	AA	1	1	7.06934e-06	7.06934e-06
+1	14464	AGTGGC	TGTGGT	69	58	0.000487784	0.000410021
+
+# Convert the gnomad_MNV_distance data to hg38
+
+awk 'BEGIN {FS="\t";OFS="\t"} {print "chr" $1, $2, $2+length($3)-1, $3 ":" $4 ":" $5 ":" $6 ":" $7 ":" $8}' temp_gnomad_mnv_genome_d1to10.tsv > temp_gnomad_mnv_genome_d1to10_reformatted.bed
+
+# liftover hg19 to hg38
+liftOver temp_gnomad_mnv_genome_d1to10_reformatted.bed liftover/hg19ToHg38.over.chain.gz temp_gnomad_mnv_genome_d1to10_liftover_outfile.txt temp_gnomad_mnv_genome_d1to10_liftover_rejected_outfile.txt
+
+# Fill in the reference sequence in REF and ALT, in between the 2 SNPs that are separated by a distance of 2 to 10 bp, for hg19.
+
+cat temp_hg19_ref_seq.sh
+#!/bin/bash
+#PBS -P abcd
+#PBS -q normal
+#PBS -l walltime=30:00:00
+#PBS -l mem=10G
+#PBS -l ncpus=1
+#PBS -l jobfs=1G
+#PBS -N hg19refseq
+#PBS -lstorage=scratch/abcd+gdata/abcd
+#PBS -m bea
+set -euo pipefail
+cd annovar/humandb/temp_mnv
+echo 'awk -f temp_fetch_seq_for_mnv_hg19.awk temp_gnomad_mnv_genome_d1to10.tsv > temp_gnomad_mnv_genome_d1to10_refseq.tsv'
+awk -f temp_fetch_seq_for_mnv_hg19.awk temp_gnomad_mnv_genome_d1to10.tsv > temp_gnomad_mnv_genome_d1to10_refseq.tsv
+
+cat temp_hg38_ref_seq.sh
+#!/bin/bash
+#PBS -P abcd
+#PBS -q normal
+#PBS -l walltime=30:00:00
+#PBS -l mem=10G
+#PBS -l ncpus=1
+#PBS -l jobfs=1G
+#PBS -N hg38refseq
+#PBS -lstorage=scratch/abcd+gdata/abcd
+#PBS -m bea
+set -euo pipefail
+cd annovar/humandb/temp_mnv
+echo 'awk' 'BEGIN {FS="\t";OFS="\t"} {split($4,a,":"); print $1, $2, a[1], a[2], a[3], a[4], a[5], a[6]}' 'temp_gnomad_mnv_genome_d1to10_liftover_outfile.txt | awk -f temp_fetch_seq_for_mnv_hg38.awk > temp_gnomad_mnv_genome_d1to10_hg38_refseq.tsv'
+awk 'BEGIN {FS="\t";OFS="\t"} {split($4,a,":"); print $1, $2, a[1], a[2], a[3], a[4], a[5], a[6]}' temp_gnomad_mnv_genome_d1to10_liftover_outfile.txt | awk -f temp_fetch_seq_for_mnv_hg38.awk > temp_gnomad_mnv_genome_d1to10_hg38_refseq.tsv
+echo ''
+echo 'Finished!'
+echo ''
+
+cat temp_fetch_seq_for_mnv_hg38.awk
+	BEGIN {
+	FS="\t";OFS="\t"
+	}
+	{
+	#fastq="References_and_Databases/hs37d5/hs37d5x.fa"
+	fastq="References_and_Databases/hg38.noalt.decoy.bwa/GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna"
+
+	chrom=$1
+	pos=$2
+	end_pos=$2+length($3)-1
+	ref1=substr($3,1,1)
+	ref2=substr($3,length($3),1)
+	alt1=substr($4,1,1)
+	alt2=substr($4,length($3),1)
+
+	cmd = "samtools faidx "fastq" "chrom":"pos"-"end_pos
+	#result=system("date"); close("date")
+	line=0
+	ref_seq=""
+	while ( ( cmd | getline result ) > 0 ) {
+	  line=line+1
+	  if (line==2) {
+	    ref_seq=result
+	  }
+	}
+	close(cmd);
+	alt_subseq=substr(ref_seq,2,(length(ref_seq)-2))
+	alt_seq=alt1""alt_subseq""alt2
+
+	print $1, $2, ref_seq, alt_seq, $5, $6, $7, $8
+
+qsub temp_hg19_ref_seq.sh
+qsub temp_hg38_ref_seq.sh
+
+# reformat fields
+echo -e "chrom\tpos\tref\talt\tgnomadMNVdist_AC_mnv\tgnomadMNVdist_AC_mnv_adj\tgnomadMNVdist_AF_mnv\tgnomadMNVdist_AF_mnv_adj" > temp_mnvdist_hdr.txt
+
+# convert hg19 to a vcf file
+echo '##fileformat=VCFv4.1' > hg19_gnomadMNVdist.vcf
+echo '##fileDate=2021-01-10' >> hg19_gnomadMNVdist.vcf
+cut -d$'\t' -f5- temp_mnvdist_hdr.txt | sed -e 's/\t/\n/g' | awk 'BEGIN {FS="\t";OFS="\t"} {print "##INFO=<ID=" $1 ",Number=.,Type=String,Description=\"" $1 "\">"}' >> hg19_gnomadMNVdist.vcf
+echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> hg19_gnomadMNVdist.vcf
+awk 'BEGIN {FS="\t";OFS="\t"} {print $1, $2, ".", $3, $4, ".", ".", "gnomadMNVdist_AC_mnv=" $5 ";gnomadMNVdist_AC_mnv_adj=" $6 ";gnomadMNVdist_AF_mnv=" $7 ";gnomadMNVdist_AF_mnv_adj=" $8}' temp_gnomad_mnv_genome_d1to10_refseq.tsv >> hg19_gnomadMNVdist.vcf
+
+# convert hg38 to a vcf file
+echo '##fileformat=VCFv4.1' > hg38_gnomadMNVdist.vcf
+echo '##fileDate=2021-01-10' >> hg38_gnomadMNVdist.vcf
+cut -d$'\t' -f5- temp_mnvdist_hdr.txt | sed -e 's/\t/\n/g' | awk 'BEGIN {FS="\t";OFS="\t"} {print "##INFO=<ID=" $1 ",Number=.,Type=String,Description=\"" $1 "\">"}' >> hg38_gnomadMNVdist.vcf
+echo -e '#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO' >> hg38_gnomadMNVdist.vcf
+awk 'BEGIN {FS="\t";OFS="\t"} {print $1, $2, ".", $3, $4, ".", ".", "gnomadMNVdist_AC_mnv=" $5 ";gnomadMNVdist_AC_mnv_adj=" $6 ";gnomadMNVdist_AF_mnv=" $7 ";gnomadMNVdist_AF_mnv_adj=" $8}' temp_gnomad_mnv_genome_d1to10_hg38_refseq.tsv  >> hg38_gnomadMNVdist.vcf
+
+# Convert the hg19 vcf to an annovar reference table
+
+cd annovar
+
+perl convert2annovar.pl -format vcf4 humandb/temp_mnv/hg19_gnomadMNVdist.vcf > humandb/hg19_gnomadMNVdist_convert2annovar.avinput
+
+python3 convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i humandb/temp_mnv/hg19_gnomadMNVdist.vcf -a humandb/hg19_gnomadMNVdist_convert2annovar.avinput -o humandb/hg19_gnomadMNVdist.txt
+
+perl index_annovar.pl humandb/hg19_gnomadMNVdist.txt -outfile humandb/hg19_gnomadMNVdist.txt.idx --skipsort
+
+mv humandb/hg19_gnomadMNVdist.txt.idx.idx humandb/hg19_gnomadMNVdist.txt.idx
+
+# Convert the hg38 vcf to an annovar reference table
+
+cd annovar
+
+perl convert2annovar.pl -format vcf4 humandb/temp_mnv/hg38_gnomadMNVdist.vcf > humandb/hg38_gnomadMNVdist_convert2annovar.avinput
+
+python3 convert_vcf_and_its_annovar_avinput_files_to_tab_delimited_for_annovar.py -i humandb/temp_mnv/hg38_gnomadMNVdist.vcf -a humandb/hg38_gnomadMNVdist_convert2annovar.avinput -o humandb/hg38_gnomadMNVdist.txt
+
+perl index_annovar.pl humandb/hg38_gnomadMNVdist.txt -outfile humandb/hg38_gnomadMNVdist.txt.idx --skipsort
+
+mv humandb/hg38_gnomadMNVdist.txt.idx.idx humandb/hg38_gnomadMNVdist.txt.idx
+
+
