@@ -31,7 +31,7 @@ touch "${lock_file}"
 rm -f "${queue_file}"
 
 module load python3
-module load bedtools/2.28.0
+module load bedtools
 module load R/3.6.1
 module unload intel-fc intel-cc
 module load intel-compiler/2019.3.199
