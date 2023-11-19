@@ -39,8 +39,8 @@ module load intel-compiler/2021.1.1
 module load R/4.0.0
 module load htslib
 module load bedtools
-export PATH=$PATH:$sw/vcftools-0.14/bin/bin:/g/data/jb96/software/vcftools-0.14/bin:/g/data/jb96/software/vcftools-0.14
-export PERL5LIB=$sw/vcftools-0.14/share/perl5:/g/data/jb96/software/vcftools-0.14/bin/share/perl5:/g/data/jb96/software/vcftools-0.14/src/perl:${PERL5LIB}
+export PATH=$PATH:$sw/vcftools-0.14/bin/bin:$sw/vcftools-0.14/bin:$sw/vcftools-0.14
+export PERL5LIB=$sw/vcftools-0.14/share/perl5:$sw/vcftools-0.14/bin/share/perl5:$sw/vcftools-0.14/src/perl:${PERL5LIB}
 
 . "${sw_and_refs}"
 

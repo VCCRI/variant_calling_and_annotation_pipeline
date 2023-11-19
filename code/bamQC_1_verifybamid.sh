@@ -32,7 +32,7 @@ module load samtools/1.10
 
 . "${sw_and_refs}"
 
-/g/data/jb96/software/verifybamid2/VerifyBamID/bin/VerifyBamID \
+"${sw}"/verifybamid2/VerifyBamID/bin/VerifyBamID \
   --SVDPrefix $verifybamid_population_frequencies \
   --Reference "${ref_fasta_fa}" \
   --BamFile "${infile}" > "${outfile}"

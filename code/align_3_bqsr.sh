@@ -39,10 +39,6 @@ module load java/jdk-8.40
 tmpdir="${PBS_JOBFS}"/tmp
 mkdir -p "${tmpdir}"
 
-#dbsnp=/g/data3/a32/References_and_Databases/GATK_bundle/hg38/beta/Homo_sapiens_assembly38.dbsnp138.vcf.gz
-#known_indels=/g/data3/a32/References_and_Databases/GATK_bundle/hg38/beta/Homo_sapiens_assembly38.known_indels.vcf.gz
-#gold_std_indels=/g/data3/a32/References_and_Databases/GATK_bundle/hg38/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz
-
 # create BQSR table
 
 out_bqsr_table="${outfile}".bqsr.table

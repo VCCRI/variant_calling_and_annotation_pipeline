@@ -1,26 +1,25 @@
 #!/bin/bash
 
 export root_of_reference_data=/my/directory/variant_calling_and_annotation_pipeline/reference_data
-export root_of_References_and_Databases=/g/data/a32/References_and_Databases
-export sw=/g/data/jb96/software
+export sw=/my/directory/software
 export batch=MY_BATCH # an identifier that will be used to prefix file names that are for aggregation files of all samples in this processing run, rather than the sample level
 export R_LIBS_USER=/my/directory/variant_calling_and_annotation_pipeline/victorchang_scripts/R_libraries_for_victorchang_scripts
 
 export genome_version=hg38 # hg38 hg19
 export limit_num_of_pbs_submissions=0
-export ref_fasta="${root_of_References_and_Databases}"/hg38.noalt.decoy.bwa/GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna
-export ref_fasta_fa="${root_of_References_and_Databases}"/hg38.noalt.decoy.bwa/GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fa
-export ref_fasta_with_alts="${root_of_References_and_Databases}"/Homo_sapiens_assembly38.fasta/Homo_sapiens_assembly38.fasta
-export ref_fasta_chroms="${root_of_References_and_Databases}"/hg38.noalt.decoy.bwa.chroms
+export ref_fasta="${root_of_reference_data}"/hg38.noalt.decoy.bwa/GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna
+export ref_fasta_fa="${root_of_reference_data}"/hg38.noalt.decoy.bwa/GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fa
+export ref_fasta_with_alts="${root_of_reference_data}"/Homo_sapiens_assembly38.fasta/Homo_sapiens_assembly38.fasta
+export ref_fasta_chroms="${root_of_reference_data}"/hg38.noalt.decoy.bwa.chroms
 export humandb="${sw}"/annovar/humandb
 export gatk_path="${sw}"/GATK/gatk-4.2.0.0/gatk
 export gatk3_path="${sw}"/GATK/GenomeAnalysisTK-3.8-1-0/GenomeAnalysisTK.jar
 export bwa="${sw}"/bwa-0.7.17/bwa
 export picard_jar="${sw}"/picard/picard-2.18.26/picard.jar
 # For GATK HaplotypeCaller:
-export gatk_dbsnp="${root_of_References_and_Databases}"/GATK_bundle/hg38/beta/Homo_sapiens_assembly38.dbsnp138.vcf.gz
+export gatk_dbsnp="${root_of_reference_data}"/GATK_bundle/hg38/beta/Homo_sapiens_assembly38.dbsnp138.vcf.gz
 # For GATK VariantRecalibrator:
-export gatk_db_dir="${root_of_References_and_Databases}"/GATK_bundle/hg38
+export gatk_db_dir="${root_of_reference_data}"/GATK_bundle/hg38
 export mills_resource_vcf="${gatk_db_dir}"/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz
 export axiomPoly_resource_vcf="${gatk_db_dir}"/Axiom_Exome_Plus.genotypes.all_populations.poly.hg38.vcf.gz
 export dbsnp_resource_vcf="${gatk_db_dir}"/beta/Homo_sapiens_assembly38.dbsnp138.vcf.gz
@@ -28,9 +27,9 @@ export hapmap_resource_vcf="$gatk_db_dir/hapmap_3.3.hg38.vcf.gz"
 export omni_resource_vcf="$gatk_db_dir/1000G_omni2.5.hg38.vcf.gz"
 export one_thousand_genomes_resource_vcf="$gatk_db_dir/1000G_phase1.snps.high_confidence.hg38.vcf.gz"
 # For align bam bqsr
-export dbsnp="${root_of_References_and_Databases}"/GATK_bundle/hg38/beta/Homo_sapiens_assembly38.dbsnp138.vcf.gz
-export known_indels="${root_of_References_and_Databases}"/GATK_bundle/hg38/beta/Homo_sapiens_assembly38.known_indels.vcf.gz
-export gold_std_indels="${root_of_References_and_Databases}"/GATK_bundle/hg38/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz
+export dbsnp="${root_of_reference_data}"/GATK_bundle/hg38/beta/Homo_sapiens_assembly38.dbsnp138.vcf.gz
+export known_indels="${root_of_reference_data}"/GATK_bundle/hg38/beta/Homo_sapiens_assembly38.known_indels.vcf.gz
+export gold_std_indels="${root_of_reference_data}"/GATK_bundle/hg38/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz
 # For annovar annotation
 export wgEncodeGencodeBasic=wgEncodeGencodeBasicV33
 export EHRF_regions=EHRF_r104_regions
@@ -76,14 +75,14 @@ export hotspot_exons="${sw}"/annovar/humandb/hg38_hotspot_exons_sv.bed
 # For splicing/splice sites
 export pythonpath_for_spliceai="${sw}"/spliceai_pip_install/spliceai
 export spliceogen_sw="${sw}"/spliceogen_2020march_updated_2021march
-export fasta_for_spliceogen="${root_of_References_and_Databases}"/hg38.fa_faidx/hg38.fa
+export fasta_for_spliceogen="${root_of_reference_data}"/hg38.fa_faidx/hg38.fa
 export gtf_for_spliceogen="${sw}"/spliceogen_2020july/resources/gencode.v33.basic.annotation.gtf.gz
 export ese_for_spliceogen="${sw}"/spliceogen_2020july/resources/ESE.txt
 export ess_for_spliceogen="${sw}"/spliceogen_2020july/resources/ESS.txt
 # For spliceai tensorflow program
-export spliceai_reference="${root_of_References_and_Databases}"/grch38.p12/GRCh38.p12.genome.fa
+export spliceai_reference="${root_of_reference_data}"/grch38.p12/GRCh38.p12.genome.fa
 # For ConanVarvar
-export conanvarvar_sv_dir=/g/data/jb96/mg8150/test/ConanVarvar
+export conanvarvar_sv_dir="${sw}"/ConanVarvar
 # For liftover
 export liftover_chain="${sw}"/liftover/hg38ToHg19.over.chain.gz
 export liftover_to_genome=hg19
@@ -94,4 +93,4 @@ export exons_chrom_start_end_gene_strand="${root_of_reference_data}"/genes_and_c
 # For platypus, to call multi-nucleotide variants (MNV)
 export platypus="${sw}"/Platypus_0.8.1_on_gadi/Platypus_0.8.1/Platypus.py
 # For verifybamid
-export verifybamid_population_frequencies=/g/data/jb96/software/verifybamid2/VerifyBamID/resource/1000g.phase3.100k.b38.vcf.gz.dat
+export verifybamid_population_frequencies="${sw}"/verifybamid2/VerifyBamID/resource/1000g.phase3.100k.b38.vcf.gz.dat

@@ -6,7 +6,7 @@
 #PBS -l ncpus=1
 #PBS -l jobfs=1G
 #PBS -N mitomap
-#PBS -lstorage=gdata/jb96+gdata/ra5+gdata/a32
+#PBS -lstorage=gdata/abcd
 
 # Most sample chroms can process in walltime=5:00:00
 # Some need more, eg. walltime=10:00:00

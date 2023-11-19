@@ -80,8 +80,8 @@ echo ''
 echo '### 2) Submit vcf file to spliceai program (look 500 bp either side)'
 echo ''
 
-echo '/g/data/jb96/software/spliceai_pip_install/spliceai/bin/spliceai -D 500 -I' $tmp_vcf '-O' $outfile_vcf '-R' $spliceai_reference '-A grch38'
-/g/data/jb96/software/spliceai_pip_install/spliceai/bin/spliceai -D 500 -I $tmp_vcf -O $outfile_vcf -R $spliceai_reference -A grch38
+echo '"${sw}"/spliceai_pip_install/spliceai/bin/spliceai -D 500 -I' $tmp_vcf '-O' $outfile_vcf '-R' $spliceai_reference '-A grch38'
+"${sw}"/spliceai_pip_install/spliceai/bin/spliceai -D 500 -I $tmp_vcf -O $outfile_vcf -R $spliceai_reference -A grch38
 echo ''
 
 count=`grep -v '^#' $outfile_vcf | grep -v '^CHROM' | grep -v '^chrom' | wc -l | cut -d' ' -f1 || true`

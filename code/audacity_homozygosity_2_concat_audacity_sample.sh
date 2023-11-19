@@ -35,11 +35,6 @@ mkdir -p "${tmpdir}"
 # set environment variables for softwares and references
 # sw_and_refs=where_are_softwares_and_references.sh
 . "${sw_and_refs}"
-# export ref_fasta=/g/data/jb96/References_and_Databases/hg38.noalt.decoy.bwa/GCA_000001405.15_GRCh38_no_alt_plus_hs38d1_analysis_set.fna
-# export sw=/g/data/jb96/software
-# export gatk_path=$sw/GATK/gatk-4.0.4.0/gatk
-# export picard_jar=$sw/picard/picard-2.18.26/picard.jar
-# export gatk_dbsnp=/g/data3/a32/References_and_Databases/GATK_bundle/hg38/beta/Homo_sapiens_assembly38.dbsnp138.vcf.gz
 
 module load R/4.0.0
 module load htslib
