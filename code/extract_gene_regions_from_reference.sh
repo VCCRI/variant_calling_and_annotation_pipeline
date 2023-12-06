@@ -25,6 +25,7 @@ regions_tab_delimited="${genes_dirname}"/"${genes_basename}"_"${genome_version}"
 regions_colon_dash_format="${genes_dirname}"/"${genes_basename}"_"${genome_version}"_RefSeq_regions_colon_dash_format.txt
 
 temp_regions_tab_delimited='temp_regions_tab_delimited.bed'
+temp_regions_tab_delimited2='temp_regions_tab_delimited2.bed'
 
 awk 'BEGIN {FS=" ";OFS=""} {print "|" $1 "|"}' $genes_without_bars > $genes_with_bars
 
@@ -33,8 +34,8 @@ readarray -t array < $genes_without_bars
 :>$temp_regions_tab_delimited
 for gene in "${array[@]}"; do
   grep_string="\t${gene}\t"
-  grep_result=`grep -P "${grep_string}" $reference`
-  if [[ $grep_result != "" ]]; then
+  grep -P "${grep_string}" $reference > $temp_regions_tab_delimited2
+  while read grep_result; do
     IFS=$'\t' read -r -a array2 <<< "$grep_result"
     chrom="${array2[0]}"
     start="${array2[1]}"
@@ -42,7 +43,7 @@ for gene in "${array[@]}"; do
     out_string1="${chrom}:${start}-${end}"
     out_string2="${chrom}\t${start}\t${end}"
     echo -e "${out_string2}" >> $temp_regions_tab_delimited
-  fi
+  done < $temp_regions_tab_delimited2
 done
 
 bedtools sort -i $temp_regions_tab_delimited | bedtools merge -i - > $regions_tab_delimited
