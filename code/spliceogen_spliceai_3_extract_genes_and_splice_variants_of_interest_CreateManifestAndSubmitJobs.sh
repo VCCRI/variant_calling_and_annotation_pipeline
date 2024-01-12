@@ -3,7 +3,6 @@ set -euo pipefail
 
 indir=/my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai
 outdir=/my/directory/variant_calling_and_annotation_pipeline/working_directory/spliceogen_spliceai
-indir_hrun=/my/directory/variant_calling_and_annotation_pipeline/working_directory/audacity_homozygosity
 
 # set environment variables for softwares and references
 currdir=$(pwd)
@@ -30,10 +29,7 @@ for infile in "${indir}"/*.annovar_clinvarDATE_spliceai.vep.spliceogen.tsv; do #
   IFS=$'\t' read -r -a array <<< "$samples_cohort"
   cohort="${array[0]}"
 
-  large_homozygous_runs="${indir_hrun}"/"${sample}".audacity_homozygosity_output.large_homozygosity_runs_only.txt
-  homozygous_runs="${indir_hrun}"/"${sample}".audacity_homozygosity_output.txt
-
-  echo -e "${sample}\t${infile}\t${outdir}\t${cohort}\t${large_homozygous_runs}\t${homozygous_runs}" >> "${out_manifest}"
+  echo -e "${sample}\t${infile}\t${outdir}\t${cohort}" >> "${out_manifest}"
 
 done
 

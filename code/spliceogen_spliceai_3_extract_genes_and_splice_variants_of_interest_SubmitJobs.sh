@@ -12,7 +12,7 @@ max_queued=$limit_num_of_pbs_submissions
 num_queued=$((max_queued+1))
 
 # one loop per input file in the the input manifest file
-while read sample infile outdir cohort large_homozygous_runs homozygous_runs; do # only genes in gene_list_id will be output
+while read sample infile outdir cohort; do # only genes in gene_list_id will be output
 
  mkdir -p "${outdir}"
 
@@ -57,16 +57,16 @@ while read sample infile outdir cohort large_homozygous_runs homozygous_runs; do
       # annovar_spliceai output is voluminous, so run in pbs
       # spliceogen output is not voluminous, so can run nopbs.sh interactively
 
-      echo 'qsub -N' ${jobid} '-v sample='"${sample}"',infile='"${infile}"',outdir='"${outdir}"',outfile='"${outfile}"',sw_and_refs='"${sw_and_refs}"',cohort='"${cohort}"',large_homozygous_runs='"${large_homozygous_runs}"',homozygous_runs='"${homozygous_runs}" 'spliceogen_spliceai_3_extract_genes_and_splice_variants_of_interest.sh'
-      qsub -N ${jobid} -v sample="${sample}",infile="${infile}",outdir="${outdir}",outfile="${outfile}",sw_and_refs="${sw_and_refs}",cohort="${cohort}",large_homozygous_runs="${large_homozygous_runs}",homozygous_runs="${homozygous_runs}" spliceogen_spliceai_3_extract_genes_and_splice_variants_of_interest.sh # && \
+      echo 'qsub -N' ${jobid} '-v sample='"${sample}"',infile='"${infile}"',outdir='"${outdir}"',outfile='"${outfile}"',sw_and_refs='"${sw_and_refs}"',cohort='"${cohort}" 'spliceogen_spliceai_3_extract_genes_and_splice_variants_of_interest.sh'
+      qsub -N ${jobid} -v sample="${sample}",infile="${infile}",outdir="${outdir}",outfile="${outfile}",sw_and_refs="${sw_and_refs}",cohort="${cohort}"spliceogen_spliceai_3_extract_genes_and_splice_variants_of_interest.sh # && \
       touch "${queue_file}" && \
       echo "${jobid} queued" $infile
       sleep 1
       num_queued=$((num_queued+1))
 
       #echo "${jobid} starting" $sample $infile
-      #echo './spliceogen_spliceai_3_extract_genes_and_splice_variants_of_interest.sh' $sample $infile $outdir $outfile $sw_and_refs $cohort $large_homozygous_runs $homozygous_runs
-      #./spliceogen_spliceai_3_extract_genes_and_splice_variants_of_interest.sh $sample $infile $outdir $outfile $sw_and_refs $cohort $large_homozygous_runs $homozygous_runs
+      #echo './spliceogen_spliceai_3_extract_genes_and_splice_variants_of_interest.sh' $sample $infile $outdir $outfile $sw_and_refs $cohort
+      #./spliceogen_spliceai_3_extract_genes_and_splice_variants_of_interest.sh $sample $infile $outdir $outfile $sw_and_refs $cohort
     fi
   #fi
 
