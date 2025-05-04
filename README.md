@@ -8,5 +8,6 @@ This pipeline does not contain the softwares that the scripts run nor the refere
 Those softwares and reference data need to be obtained and installed separately, and the system location pointed to by the appropriate variables in the script code/where_are_softwares_and_references.sh
 Softwares called by the pipeline script and that need to be obtained and installed separately include: bwa, GATK, platypus, annovar, vep, VPOT, gridss, manta, cnvnator, conanvarvar, and spliceogen.
 Reference data that need to be obtained and installed separately include: human reference genome, annovar annotation file, vep annotation file, gnomad population data, and spliceai data.
+For the list of softwares that need to be installed, please look at code/where_are_softwares_and_references.sh. Every variable that points to a software path is a software that needs to be installed.
 
 To run this pipeline to align Illumina paired-end sequencing reads to the human genome and then call and annotate variants, follow the instructions in list_jobs_to_run_pipeline.txt

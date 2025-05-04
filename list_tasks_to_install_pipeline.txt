@@ -87,3 +87,8 @@ how_to_create_hg38_pext_sv_for_genes.bed.txt
 how_to_create_hg38_spliceai_raw.txt
 how_to_create_hg38_spliceai_raw_noZeros.txt
 
+
+########## List of external softwares to be installed to run this pipeline
+
+For the list of softwares that need to be installed, please look at code/where_are_softwares_and_references.sh. Every variable that points to a software path is a software that needs to be installed.
+
