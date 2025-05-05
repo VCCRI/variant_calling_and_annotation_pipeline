@@ -19,8 +19,8 @@ Eg. If the child and mother are affected and the father is not, then run VPOT fo
 Eg. If you have several family members and some are affected and others are not, then run Case-Control.<br>
 VPOT uses the standard pedigree file to know who is affected and how they are related.<br>
 Eg. Pedigree file for 2 families, each having affect child (one female, one male) and unaffected parents:<br>
-cat MY_SAMPLES.ped
 <pre>
+$ cat MY_SAMPLES.ped
 #Family	Subject	Father	Mother	Sex	Phenotype
 FAM1	SAMP1	SAMP2	SAMP3	2	2
 FAM1	SAMP3	0	0	2	1
@@ -30,8 +30,8 @@ FAM2	SAMP22	0	0	1	1
 FAM2	SAMP23	0	0	2	1
 </pre>
 For a duo consisting of an affected child and unaffected mother, one can run VPOT for DN and CH. Here is how to create the VPOT pedigree file:
-cat MY_SAMPLES3.ped
 <pre>
+$ cat MY_SAMPLES3.ped
 #Family Subject Father  Mother  Sex     Phenotype
 FAM3	SAMP31	0	SAMP32	2	2
 FAM3	SAMP32	0	0	2	1
